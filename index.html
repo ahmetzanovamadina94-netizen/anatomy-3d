@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Анатомия 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday study tool, precise like an anatomy app
+   IDEA a dark dissection stage: one body, layers of bone, vessels, nerves and organs you peel back
+   PICTURE the full-screen 3D model itself; tapping a structure lights it green and opens its card
+   COLOUR near-black stage, ivory bone, arterial red, venous blue, nerve yellow, green selection
+   TYPE Unbounded for the name + Inter for everything else (Kazakh Cyrillic)
+   LAYOUT laptop: layers left, model centre, card right, views along the bottom; phone: model full, card as bottom sheet */
+:root{color-scheme:dark;--ink:#f2eee8;--mute:#a9a39c;--panel:rgba(20,21,24,.84);--edge:rgba(255,255,255,.09);--acc:#36d68a}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{background:#08090b;color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;overflow:hidden}
+#app{position:fixed;inset:0;background:radial-gradient(120% 90% at 50% 40%,#23262d 0%,#111216 55%,#060608 100%)}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#c.hov{cursor:pointer}
+#c:active{cursor:grabbing}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.top{position:absolute;z-index:5;top:0;left:0;right:0;display:flex;align-items:center;gap:12px;padding:12px 16px;pointer-events:none}
+.top>*{pointer-events:auto}
+.logo{font-family:Unbounded,Inter,sans-serif;font-size:18px;display:flex;align-items:center;gap:10px;margin-right:auto;white-space:nowrap}
+.logo svg{width:28px;height:28px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:3px;backdrop-filter:blur(10px)}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:600;cursor:pointer;min-height:38px;color:var(--mute)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#111}
+.store{font-size:13px;color:var(--mute);text-decoration:none;border:1px solid var(--edge);padding:9px 12px;border-radius:10px;background:var(--panel);white-space:nowrap}
+.store:hover{color:var(--ink)}
+#layBtn{display:none}
+.panel{position:absolute;background:var(--panel);border:1px solid var(--edge);border-radius:16px;backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#left{top:124px;left:16px;width:270px;max-height:calc(100% - 200px);display:flex;flex-direction:column;padding:14px}
+#left h3,#right h3{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--mute)}
+.lay{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:8px 6px;border-radius:9px;cursor:pointer;text-align:left;min-height:40px}
+.lay:hover{background:rgba(255,255,255,.05)}
+.lay i{width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}
+.lay span{flex:1}
+.lay b{width:34px;height:20px;border-radius:20px;background:#3a3b40;position:relative;flex:none;transition:background .2s}
+.lay b::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.lay[aria-pressed=true] b{background:var(--acc)}
+.lay[aria-pressed=true] b::after{transform:translateX(14px)}
+.slider{margin:10px 6px 4px}
+.slider label{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--acc);height:24px}
+.hint{font-size:12.5px;color:var(--mute);margin:4px 6px 12px}
+#q{width:100%;font:16px Inter,sans-serif;padding:10px 12px;border-radius:10px;border:1px solid var(--edge);background:rgba(0,0,0,.3);color:var(--ink)}
+#list{list-style:none;margin:8px 0 0;padding:0;overflow:auto;flex:1;min-height:60px}
+#list button{width:100%;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+#list button:hover{background:rgba(255,255,255,.06)}
+#list i{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none;transform:translateY(-1px)}
+#list small{color:var(--mute);font-style:italic;margin-left:auto;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+#right{top:124px;right:16px;width:340px;max-height:calc(100% - 200px);overflow:auto;padding:20px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.07)}
+.tag i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+#right h2{font:600 24px/1.15 Unbounded,Inter,sans-serif;margin:12px 0 4px;letter-spacing:-.01em}
+.lat{color:var(--mute);font-style:italic;margin:0 0 12px}
+#right p{margin:0 0 12px}
+.facts{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px}
+.facts li{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.05);font-size:14px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--edge);background:rgba(255,255,255,.06);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;min-height:40px}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#06140c}
+.empty{color:var(--mute)}
+.empty b{color:var(--ink);display:block;font-size:17px;margin-bottom:8px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:14px;font-size:13.5px}
+.keys span:nth-child(odd){color:var(--ink);font-weight:600;white-space:nowrap}
+.opts{display:grid;gap:8px;margin:14px 0}
+.opt{text-align:left;border:1px solid var(--edge);background:rgba(255,255,255,.05);padding:12px 14px;border-radius:10px;cursor:pointer;min-height:46px}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.ok{border-color:var(--acc);background:rgba(54,214,138,.18)}
+.opt.bad{border-color:#e5484d;background:rgba(229,72,77,.18)}
+.score{font:600 15px Inter;color:var(--mute)}
+.score b{color:var(--acc);font-size:20px}
+#tools{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:6px;max-width:calc(100% - 32px)}
+#tools button{border:0;background:transparent;padding:8px 12px;border-radius:9px;cursor:pointer;font-weight:600;font-size:14px;min-height:38px;color:var(--mute);white-space:nowrap}
+#tools button:hover{color:var(--ink);background:rgba(255,255,255,.07)}
+#tools #showall{color:var(--acc)}
+#marker{position:absolute;left:0;top:0;pointer-events:none;display:none;transform:translate(-50%,-50%)}
+#marker i{display:block;width:14px;height:14px;border-radius:50%;background:var(--acc);border:3px solid #fff;box-shadow:0 0 0 6px rgba(54,214,138,.25)}
+#marker span{position:absolute;left:20px;top:50%;transform:translateY(-50%);background:#fff;color:#111;font-weight:700;font-size:13px;padding:4px 9px;border-radius:7px;white-space:nowrap}
+#tip{position:absolute;pointer-events:none;background:rgba(0,0,0,.8);border:1px solid var(--edge);padding:4px 9px;border-radius:7px;font-size:13px;display:none;white-space:nowrap}
+#err{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--mute)}
+#err[hidden]{display:none}
+#videos{position:absolute;inset:0;z-index:4;overflow:auto;background:#0b0c0f;padding:76px max(4vw,16px) 40px}
+#videos[hidden],#player[hidden]{display:none}
+.vwrap{max-width:1240px;margin:0 auto}
+.vhead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px 40px;align-items:end;margin-bottom:26px}
+.vhead h1{font:600 clamp(28px,4vw,44px)/1.05 Unbounded,Inter,sans-serif;margin:0;letter-spacing:-.02em}
+.vhead p{margin:0;color:var(--mute)}
+.mtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.mtabs button{border:1px solid var(--edge);background:var(--panel);padding:8px 14px;border-radius:20px;cursor:pointer;font-weight:600;min-height:40px;color:var(--mute)}
+.mtabs button small{opacity:.7;margin-left:4px}
+.mtabs button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#06140c}
+.mod{margin-bottom:30px}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.mhead h3{margin:0;font:600 20px/1.2 Unbounded,Inter,sans-serif}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px}
+.vc{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--edge);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.vc:hover,.vc:focus-visible{border-color:var(--acc)}
+.vc:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.thumb{aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(90% 120% at 30% 20%,var(--c1),#101114 75%)}
+.thumb .num{position:absolute;left:16px;bottom:10px;font:600 46px/1 Unbounded,Inter,sans-serif;color:rgba(255,255,255,.9)}
+.thumb svg{width:58px;height:58px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+.vc .meta{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}
+.vc .meta b{font-size:16px}
+.vc .meta span{color:var(--mute);font-size:13.5px}
+.vnote{color:var(--mute);font-size:13px;margin-top:22px}
+#player{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+.pbox{width:min(1000px,100%);background:#111215;border:1px solid var(--edge);border-radius:16px;overflow:hidden}
+.pbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 18px}
+.pframe{aspect-ratio:16/9;background:#000}
+.pframe iframe{width:100%;height:100%;border:0;display:block}
+.pblock{padding:28px 18px;text-align:center}
+.pblock .btn{display:inline-flex;align-items:center;text-decoration:none}
+@media(max-width:760px){.vhead{grid-template-columns:minmax(0,1fr)}#videos{padding-top:70px}}
+#regions{position:absolute;top:68px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:4px;max-width:calc(100% - 32px);overflow-x:auto;z-index:2}
+#regions button{border:0;background:transparent;padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:600;font-size:14px;min-height:38px;color:var(--mute);white-space:nowrap}
+#regions button:hover{color:var(--ink)}
+#regions button[aria-pressed=true]{background:var(--acc);color:#06140c}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chip{border:1px solid var(--edge);background:rgba(255,255,255,.05);padding:6px 11px;border-radius:20px;cursor:pointer;font-size:13.5px;min-height:34px}
+.chip:hover{border-color:var(--acc)}
+.back{border:0;background:none;color:var(--mute);cursor:pointer;padding:4px 0 10px;font-weight:600;display:block}
+.back:hover{color:var(--ink)}
+.rvid{margin:0 0 14px;background:#000;border-radius:12px;overflow:hidden}
+.rvid video{display:block;width:100%;max-height:300px;object-fit:contain;background:#000}
+.rvid figcaption{font-size:12.5px;color:var(--mute);padding:7px 10px;background:#141518}
+.rec{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:14px;margin-bottom:34px}
+.rec figure{margin:0;background:var(--panel);border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+.rec video{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#000}
+.rec figcaption{padding:10px 12px;font-weight:600}
+.vsub{font:600 18px/1.2 Inter,sans-serif;margin:0 0 14px}
+@media(max-width:480px){.logo span{display:none}.top{gap:8px;padding:10px 12px}#layBtn{padding:8px 10px}}
+@media(max-width:1100px){#right{width:300px}#left{width:240px}}
+@media(max-width:760px){
+ .logo{font-size:15px}.logo svg{width:24px;height:24px}.store{display:none}.seg button{padding:7px 12px}
+ #layBtn{display:inline-flex}
+ #regions{top:56px;left:0;right:0;transform:none;max-width:none;border-radius:0;border-width:1px 0}
+ #left{display:none;top:150px;left:12px;right:12px;width:auto;max-height:55%;z-index:3}
+ #left.open{display:flex}
+ #right{top:auto;bottom:0;left:0;right:0;width:auto;max-height:44%;border-radius:18px 18px 0 0;padding:16px 18px}
+ #right h2{font-size:20px;margin-top:8px}
+ .rvid video{max-height:170px}
+ #tools{top:104px;bottom:auto;left:0;right:0;transform:none;max-width:none;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding:4px 12px}
+ #tools button{background:var(--panel);border:1px solid var(--edge)}
+ .keys{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="c" aria-label="Адам денесінің 3D моделі"></canvas>
+  <div id="marker"><i></i><span></span></div>
+  <div id="tip"></div>
+  <header class="top">
+    <div class="logo"><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#36d68a"/><path d="M14 5v18M9 9.5c3 2 7 2 10 0M9 14.5c3 2 7 2 10 0M9 19.5c3 2 7 2 10 0" stroke="#06140c" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>Анатомия 3D</span></div>
+    <button class="btn" id="layBtn" aria-expanded="false">Қабаттар</button>
+    <div class="seg" role="group" aria-label="Режим"><button id="mAtlas" aria-pressed="true">Атлас</button><button id="mQuiz" aria-pressed="false">Тест</button><button id="mVideo" aria-pressed="false">Видео</button></div>
+    <a class="store" href="https://apps.apple.com/app/id1593953398">Anatomy Learning — App Store</a>
+  </header>
+  <nav class="panel" id="regions" aria-label="Аймақтар"></nav>
+  <aside class="panel" id="left">
+    <h3>Қабаттар</h3>
+    <div id="layers"></div>
+    <div class="slider"><label for="op"><span>Сүйектердің мөлдірлігі</span><span id="opv">100%</span></label><input type="range" id="op" min="0.1" max="1" step="0.05" value="1"></div>
+    <p class="hint">Миды және ішкі мүшелерді көру үшін сүйектерді мөлдір етіңіз.</p>
+    <h3>Іздеу</h3>
+    <input id="q" type="search" placeholder="Мысалы: жүрек, нерв, femur" autocomplete="off">
+    <ul id="list"></ul>
+  </aside>
+  <aside class="panel" id="right" aria-live="polite"></aside>
+  <nav class="panel" id="tools" aria-label="Көрініс">
+    <button id="v-front">Алдынан</button><button id="v-back">Артынан</button><button id="v-left">Сол жағы</button><button id="v-right">Оң жағы</button><button id="v-reset">Бастапқы</button><button id="showall" hidden>Барлығын көрсету</button>
+  </nav>
+  <section id="videos" hidden aria-label="Видеосабақтар">
+    <div class="vwrap">
+      <div class="vhead"><h1>Видеосабақтар</h1><p>Анатомия бойынша YouTube сабақтары. Сабақты қарап болған соң, «Атлас» бөлімінде сол құрылымды 3D модельден тауып көріңіз.</p></div>
+      <h2 class="vsub">Қосымшадағы 3D шолулар</h2><div class="rec" id="rec"></div><h2 class="vsub">YouTube сабақтары</h2><div class="mtabs" id="mtabs" role="group" aria-label="Модульдер"></div><div id="vgrid"></div>
+    </div>
+  </section>
+  <div id="player" hidden role="dialog" aria-modal="true" aria-label="Видео ойнатқыш">
+    <div class="pbox">
+      <div class="pbar"><b id="ptitle"></b><span class="acts"><a class="btn" id="plink2" href="#" style="text-decoration:none">YouTube</a><button class="btn" id="pclose">Жабу</button></span></div>
+      <div class="pframe" id="pframe"></div>
+      <div class="pblock" id="pblock" hidden><p>Видео бұл жерде ойнатылмайды. YouTube-та ашыңыз.</p><a class="btn pri" id="plink" href="#">YouTube-та ашу</a></div>
+    </div>
+  </div>
+  <div id="err" hidden><div><b style="color:#f2eee8;font-size:18px">3D модель жүктелмеді</b><br>Интернет байланысын тексеріп, бетті жаңартыңыз. Браузер WebGL қолдауы керек.</div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script>
+{
+const INFO={
+skull:['Бас сүйек','Cranium','Миды, көзді және ішкі құлақты қорғайды. Ми сауыты мен бет бөлігінен тұрады.',['Ересекте 22 сүйек (есту сүйекшелерінсіз)','Сүйектері тігістер арқылы қозғалмай бірігеді']],
+mandible:['Төменгі жақ сүйегі','Mandibula','Бас сүйектің жалғыз қозғалмалы сүйегі. Шайнау мен сөйлеуге қатысады.',['Самай-төменгі жақ буыны арқылы бас сүйекпен байланысады','Бет сүйектерінің ең ірісі әрі ең берігі']],
+cerv:['Мойын омыртқалары','Vertebrae cervicales','Басты ұстап тұрады және мойынның қозғалғыштығын қамтамасыз етеді.',['7 омыртқа (C1–C7)','C1 — атлант, C2 — білікше','Көлденең өсінділерінің тесігінен омыртқа артериясы өтеді']],
+thor:['Кеуде омыртқалары','Vertebrae thoracicae','Қабырғалармен буындасып, кеуде қуысының артқы қабырғасын құрайды.',['12 омыртқа (T1–T12)','Әрқайсысында қабырғаға арналған буын беттері бар']],
+lumb:['Бел омыртқалары','Vertebrae lumbales','Дененің жоғарғы бөлігінің салмағын көтереді, сондықтан денелері ең ірі.',['5 омыртқа (L1–L5)','Жұлын шамамен L1–L2 деңгейінде аяқталады']],
+sacrum:['Сегізкөз және құйымшақ','Os sacrum, os coccygis','Сегізкөз жамбас сақинасының артқы бөлігін құрайды, құйымшақ — омыртқа жотасының соңы.',['Сегізкөз 5 омыртқаның бірігуінен түзіледі','Құйымшақ 3–5 кішкентай омыртқадан тұрады']],
+rib:['Қабырға','Costa','Қабырғалар жүрек пен өкпені қорғайды және тыныс алғанда кеуде көлемін өзгертеді.',['12 жұп: 1–7 — нағыз, 8–10 — жалған, 11–12 — кезбе қабырғалар','Әр қабырғаның астыңғы жиегімен қабырғааралық тамырлар мен нерв өтеді']],
+sternum:['Төс сүйегі','Sternum','Кеуденің алдыңғы ортасындағы жалпақ сүйек. Қабырғалар шеміршек арқылы бекиді.',['Үш бөлігі: тұтқа, дене, семсер тәрізді өсінді','Жүрек-өкпе реанимациясында төстің төменгі жартысын басады']],
+clavicle:['Бұғана','Clavicula','Қолды денеге жалғайтын S тәрізді сүйек.',['Ең жиі сынатын сүйектердің бірі','Астынан бұғанаасты артерия мен вена өтеді']],
+scapula:['Жауырын','Scapula','Арқадағы үшбұрышты жалпақ сүйек. Иық буынының ұясын құрайды.',['17 бұлшықет бекиді','Жауырын қыры мен акромион өсіндісі бар']],
+humerus:['Тоқпан жілік','Humerus','Иықтың ұзын сүйегі: жоғарыда иық буынын, төменде шынтақ буынын құрайды.',['Артқы бетіндегі иірімнен кәрі жілік нерві өтеді','Хирургиялық мойны — жиі сынатын жер']],
+radius:['Кәрі жілік','Radius','Білектің бас бармақ жағындағы сүйегі. Білекті айналдыруға қатысады.',['Төменгі ұшының сынуы — ең жиі сынықтардың бірі','Қасынан кәрі жілік артериясы өтеді — тамыр соғуы осы жерден саналады']],
+ulna:['Шынтақ сүйегі','Ulna','Білектің кішкене саусақ жағындағы сүйегі. Шынтақ буынының негізгі бөлігі.',['Жоғарғы ұшы — шынтақ өсіндісі (олекранон)','Кәрі жілікпен екі буын арқылы байланысады']],
+carpals:['Білезік сүйектері','Ossa carpi','Екі қатарда орналасқан ұсақ сүйектер. Қол басына иілгіштік береді.',['8 сүйек','Алақан жағында білезік өзегі түзіледі — одан ортаңғы нерв өтеді']],
+metacarpals:['Алақан сүйектері','Ossa metacarpi','Алақанның қаңқасын құрайтын бес ұзын сүйек.',['5 сүйек, бас бармақтан бастап нөмірленеді']],
+phalanges_h:['Қол саусақтарының фалангалары','Phalanges manus','Саусақтардың сүйектері.',['Барлығы 14: бас бармақта — 2, қалғандарында — 3-тен','Қол басында барлығы 27 сүйек бар']],
+pelvis:['Жамбас сүйегі','Os coxae','Мықын, шонданай және қасаға сүйектерінің бірігуінен түзіледі. Дене салмағын аяққа береді.',['Ұршық ойығына ортан жіліктің басы кіреді','Әйелдер жамбасы кеңірек әрі аласа']],
+femur:['Ортан жілік','Femur','Дененің ең ұзын әрі ең берік сүйегі. Жамбас және тізе буындарын құрайды.',['Ұзындығы бойдың шамамен 1/4 бөлігі','Мойнының сынуы егде адамдарда жиі кездеседі']],
+patella:['Тізе тостағаны','Patella','Санның төрт басты бұлшықетінің сіңірі ішінде орналасқан сүйек.',['Денедегі ең ірі сіңір ішілік сүйек','Тізені жазатын бұлшықеттің күшін арттырады']],
+tibia:['Үлкен жіліншік','Tibia','Сирақтың негізгі тірек сүйегі. Алдыңғы қырын тері арқылы сипап сезуге болады.',['Төменгі ұшы — ішкі тобық','Дене салмағының басым бөлігін көтереді']],
+fibula:['Кіші жіліншік','Fibula','Сирақтың сыртқы жағындағы жіңішке сүйек. Оған бұлшықеттер бекиді.',['Төменгі ұшы — сыртқы тобық','Басының қасынан кіші жіліншік нерві өтеді']],
+tarsals:['Тілерсек сүйектері','Ossa tarsi','Табанның артқы бөлігінің сүйектері. Өкше сүйегі — олардың ең ірісі.',['7 сүйек: тобық, өкше, қайық тәрізді, текше тәрізді және 3 сына тәрізді']],
+metatarsals:['Табан сүйектері','Ossa metatarsi','Табанның ортаңғы бөлігін құрайтын бес ұзын сүйек. Табан доғасын түзеді.',['5 сүйек','Ұзақ жүргенде «шаршау сынығы» жиі осы сүйектерде болады']],
+phalanges_f:['Аяқ саусақтарының фалангалары','Phalanges pedis','Аяқ саусақтарының сүйектері.',['Барлығы 14: бас бармақта — 2, қалғандарында — 3-тен','Аяқ басында барлығы 26 сүйек бар']],
+heart:['Жүрек','Cor','Қанды бүкіл денеге айдайтын бұлшықетті мүше. Кеуде қуысында, сәл сол жақта орналасқан.',['Салмағы шамамен 250–350 г','Тыныштықта минутына 60–100 рет соғады','4 камера: 2 жүрекше, 2 қарынша']],
+coronary:['Тәждік артериялар','Aa. coronariae','Жүрек бұлшықетін қанмен қамтамасыз етеді.',['Қолқаның басынан шығады','Бітелуі миокард инфарктіне әкеледі']],
+aorta:['Қолқа (аорта)','Aorta','Денедегі ең ірі артерия. Сол қарыншадан шығып, оттегіге бай қанды барлық мүшелерге таратады.',['Бөліктері: өрлеме бөлік, доға, төмендемелі бөлік','Диаметрі шамамен 2,5–3 см','L4 деңгейінде мықын артерияларына бөлінеді']],
+brachioceph:['Иық-бас діңі','Truncus brachiocephalicus','Қолқа доғасының бірінші тармағы. Оң ұйқы және оң бұғанаасты артерияларына бөлінеді.',['Тек оң жақта болады']],
+carotid:['Ұйқы артериясы','A. carotis communis','Мойын арқылы бет пен миға қан жеткізеді. Ішкі және сыртқы тармақтарға бөлінеді.',['Мойынның бүйірінен тамыр соғуын сезуге болады','Ішкі ұйқы артериясы миды қоректендіреді']],
+subclavian:['Бұғанаасты артерия','A. subclavia','Бұғананың астымен өтіп, қолға қан жеткізеді.',['Оң жақта иық-бас діңінен, сол жақта қолқа доғасынан шығады','Омыртқа артериясын береді']],
+axillary:['Қолтық артериясы','A. axillaris','Бұғанаасты артерияның қолтық шұңқырындағы жалғасы.',['Иық өрімінің бумаларымен қоршалған']],
+brachial:['Иық артериясы','A. brachialis','Иық бойымен өтіп, шынтақта кәрі жілік және шынтақ артерияларына бөлінеді.',['Қан қысымын өлшегенде осы артерияны тыңдайды']],
+radial:['Кәрі жілік артериясы','A. radialis','Білектің бас бармақ жағымен өтеді.',['Білезіктен тамыр соғуын осы артериядан санайды']],
+ulnar:['Шынтақ артериясы','A. ulnaris','Білектің кішкене саусақ жағымен өтеді.',['Беткей алақан доғасының негізгі көзі']],
+palmar:['Алақан доғасы','Arcus palmaris','Кәрі жілік және шынтақ артерияларын қосатын тамыр доғасы.',['Беткей және терең доғалар болады','Саусақ артериялары осыдан тарайды']],
+digital_a:['Саусақ артериялары','Aa. digitales','Әр саусақтың екі бүйірімен өтетін ұсақ артериялар.',['Саусақ ұшының қанмен қамтылуы осыларға тәуелді']],
+renal_a:['Бүйрек артериясы','A. renalis','Қолқадан шығып, бүйрекке қан жеткізеді.',['Жүрек айдаған қанның шамамен 20%-ы бүйрекке барады']],
+iliac_a:['Мықын артериялары','Aa. iliacae','Қолқаның соңғы тармақтары. Ішкі тармағы жамбас мүшелеріне, сыртқысы аяққа барады.',['Жалпы мықын артериясы ішкі және сыртқы тармақтарға бөлінеді']],
+femoral:['Сан артериясы','A. femoralis','Аяқты қанмен қамтамасыз ететін негізгі артерия.',['Шап қатпарынан тамыр соғуын сезуге болады','Терең сан артериясы — оның ең ірі тармағы']],
+popliteal:['Тақым артериясы','A. poplitea','Сан артериясының тізе артындағы жалғасы.',['Тақым шұңқырында терең жатады']],
+ant_tibial:['Алдыңғы жіліншік артериясы','A. tibialis anterior','Сирақтың алдыңғы бұлшықеттеріне қан жеткізеді.',['Табан сыртында табан сырты артериясына жалғасады']],
+dorsalis:['Табан сырты артериясы','A. dorsalis pedis','Табанның үстіңгі бетіндегі артерия.',['Аяқтағы қан айналымын тексергенде тамыр соғуы сипалады']],
+post_tibial:['Артқы жіліншік артериясы','A. tibialis posterior','Сирақтың артқы бұлшықеттері мен табанды қоректендіреді.',['Ішкі тобықтың артынан тамыр соғуы сезіледі']],
+pulmtrunk:['Өкпе діңі','Truncus pulmonalis','Оң қарыншадан оттегісі аз қанды өкпеге апарады.',['Артерия болса да, оттегісі аз қан тасиды, сондықтан көк түспен боялады']],
+svc:['Жоғарғы қуыс вена','V. cava superior','Бас, мойын және қолдан келген қанды оң жүрекшеге қайтарады.',['Ұзындығы шамамен 7 см']],
+ivc:['Төменгі қуыс вена','V. cava inferior','Дененің төменгі жартысынан қанды оң жүрекшеге қайтаратын ең ірі вена.',['Бауырдың артқы бетімен өтеді','Көкеттегі тесік арқылы кеуде қуысына кіреді']],
+bc_vein:['Иық-бас веналары','Vv. brachiocephalicae','Мойындырық және бұғанаасты веналарының қосылуынан түзіледі.',['Екеуі қосылып жоғарғы қуыс венаны құрайды']],
+ijv:['Ішкі мойындырық вена','V. jugularis interna','Мидан және беттен қанды жинайды.',['Ұйқы артериясымен бір қынапта жатады']],
+ejv:['Сыртқы мойындырық вена','V. jugularis externa','Мойынның бетінде орналасқан вена.',['Күшенгенде немесе жатқанда тері астынан көрінеді']],
+subclavian_v:['Бұғанаасты вена','V. subclavia','Қолдан келетін қанды жинайды.',['Орталық венаға катетер қою үшін жиі қолданылады']],
+brachial_v:['Иық және қолтық веналары','Vv. brachiales, v. axillaris','Қолдың терең веналары, артерияның қасымен жүреді.',['Әдетте артерияны екі жағынан қоршап жүреді']],
+cephalic:['Латералды тері асты вена','V. cephalica','Қолдың сыртқы (бас бармақ) жағымен өтетін беткей вена.',['Дельта және кеуде бұлшықеттерінің арасындағы жүлгемен қолтық венасына құяды']],
+basilic:['Медиалды тері асты вена','V. basilica','Қолдың ішкі жағымен өтетін беткей вена.',['Иықтың ортасында терең веналарға құяды']],
+median_cubital:['Шынтақтың ортаңғы венасы','V. mediana cubiti','Шынтақ бүгілісінде екі тері асты венаны қосады.',['Қан алуға ең жиі қолданылатын вена']],
+dorsal_hand_v:['Қол басының сыртқы веналары','Rete venosum dorsale manus','Қол басының үстіңгі бетіндегі вена торы.',['Көктамыр ішіне катетер қоюға ыңғайлы']],
+renal_v:['Бүйрек венасы','V. renalis','Бүйректен келген қанды төменгі қуыс венаға апарады.',['Сол жақтағысы ұзынырақ — қолқаның алдынан өтеді']],
+iliac_v:['Мықын веналары','Vv. iliacae','Аяқ пен жамбастан келген қанды жинап, төменгі қуыс венаны түзеді.',['L5 деңгейінде қосылады']],
+femoral_v:['Сан венасы','V. femoralis','Аяқтың негізгі терең венасы, сан артериясының ішкі жағында жатады.',['Терең вена тромбозы жиі осы жерде кездеседі']],
+popliteal_v:['Тақым венасы','V. poplitea','Тізенің артындағы терең вена.',['Кіші тері асты вена осыған құяды']],
+post_tibial_v:['Артқы жіліншік веналары','Vv. tibiales posteriores','Сирақтың терең веналары.',['Балтыр бұлшықеті жиырылғанда қанды жоғары айдайды — «бұлшықет помпасы»']],
+gsv:['Үлкен тері асты вена','V. saphena magna','Денедегі ең ұзын вена. Табаннан шапқа дейін аяқтың ішкі бетімен өтеді.',['Ішкі тобықтың алдынан өтеді','Жүректі айналып өту операциясында трансплантат ретінде алынады','Варикозды кеңеюі жиі кездеседі']],
+ssv:['Кіші тері асты вена','V. saphena parva','Табанның сыртқы жиегінен басталып, балтырдың артымен тақым венасына құяды.',['Табан сыртындағы вена доғасымен байланысады']],
+brain:['Ми','Encephalon','Орталық жүйке жүйесінің басты мүшесі: ойлауды, сезімді, қозғалысты және есте сақтауды басқарады.',['Салмағы шамамен 1,3–1,4 кг','Шамамен 86 млрд нейрон','Дене энергиясының ~20%-ын жұмсайды']],
+cerebellum:['Мишық','Cerebellum','Қозғалыс үйлесімділігі мен тепе-теңдікті басқарады.',['Ми салмағының ~10%-ы, бірақ нейрондардың жартысынан көбі осында']],
+brainstem:['Ми бағаны','Truncus encephali','Миды жұлынмен жалғайды. Тыныс алу мен жүрек соғуын реттейтін орталықтар осында.',['Бөліктері: ортаңғы ми, ми көпірі, сопақша ми','Бас-ми нервтерінің көбі осыдан шығады']],
+cord:['Жұлын','Medulla spinalis','Ми мен денені байланыстыратын жүйке бағаны. Рефлекстердің орталығы.',['Ұзындығы шамамен 45 см','31 жұп жұлын нервтері шығады','Төменгі жағы «ат құйрығы» талшықтарына ауысады']],
+intercostal:['Қабырғааралық нервтер','Nn. intercostales','Кеуде жұлын нервтерінің алдыңғы тармақтары. Қабырғааралық бұлшықеттер мен теріні нервтендіреді.',['11 жұп, 12-сі — қабырғаасты нерв']],
+plexus_br:['Иық өрімі','Plexus brachialis','C5–T1 жұлын нервтерінен түзілетін нерв торы. Қолдың барлық нервтері осыдан шығады.',['Құрылымы: түбірлер, діңдер, бөліктер, бумалар','Босану кезінде зақымдалуы мүмкін (Эрб салдануы)']],
+median:['Ортаңғы нерв','N. medianus','Білектің бүккіш бұлшықеттері мен бас бармақ төмпешігін басқарады, алақанның сыртқы бөлігін нервтендіреді.',['Білезік өзегінде қысылуы — білезік өзегі синдромы']],
+ulnar:['Шынтақ нерві','N. ulnaris','Қол басының ұсақ бұлшықеттерін басқарады, кішкене саусақ жағын нервтендіреді.',['Шынтақтың ішкі жағында тері астында жатады — ұрылғанда «ток соққандай» сезім береді']],
+radial:['Кәрі жілік нерві','N. radialis','Иық пен білектің жазғыш бұлшықеттерін басқарады.',['Тоқпан жілік сынғанда зақымдалса — «салбыраған қол басы»']],
+musculo:['Бұлшықет-тері нерві','N. musculocutaneus','Иықтың алдыңғы бұлшықеттерін (бицепсті) басқарады.',['Білектің сыртқы бетінің терісін нервтендіреді']],
+vagus:['Кезбе нерв','N. vagus','X жұп бас-ми нерві. Жүрек, өкпе және ас қорыту мүшелерінің жұмысын реттейді.',['Ең ұзын бас-ми нерві','Парасимпатикалық жүйенің негізгі нерві']],
+femoral_n:['Сан нерві','N. femoralis','Санның алдыңғы бұлшықеттерін (төрт басты бұлшықетті) басқарады.',['Бел өрімінің ең ірі тармағы']],
+saphenous_n:['Тері асты нерві','N. saphenus','Сан нервінің сезімтал тармағы. Сирақтың ішкі бетін нервтендіреді.',['Үлкен тері асты венамен қатар жүреді']],
+sciatic:['Шонданай нерві','N. ischiadicus','Денедегі ең жуан әрі ең ұзын нерв. Санның артқы бөлігін, сирақ пен табанды басқарады.',['Жуандығы бас бармақтай','Тақымның үстінде жіліншік және кіші жіліншік нервтеріне бөлінеді','Қысылғанда ишиас пайда болады']],
+tibial_n:['Жіліншік нерві','N. tibialis','Балтыр және табан бұлшықеттерін басқарады.',['Ішкі тобықтың артымен табанға өтеді']],
+fibular_n:['Кіші жіліншік нерві','N. fibularis communis','Сирақтың алдыңғы және сыртқы бұлшықеттерін басқарады.',['Кіші жіліншік басының қасында беткей жатады — оңай зақымдалады','Зақымдалса — «салбыраған табан»']],
+lung:['Өкпе','Pulmo','Газ алмасу мүшесі: оттегі қанға өтеді, көмірқышқыл газы шығарылады.',['Оң өкпе — 3 бөлік, сол өкпе — 2 бөлік','300–500 млн альвеола']],
+trachea:['Кеңірдек','Trachea','Көмейден бронхтарға ауа өткізетін түтік.',['Ұзындығы 10–12 см','16–20 C тәрізді шеміршек сақинасы бар']],
+bronchi:['Бас бронхтар','Bronchi principales','Кеңірдектің екі тармағы, әрқайсысы бір өкпеге кіреді.',['Оң бронх қысқа әрі тік — бөгде зат көбіне осыған түседі']],
+larynx:['Көмей','Larynx','Тыныс жолының дыбыс шығаратын бөлігі. Ішінде дауыс байламдары бар.',['Қалқанша шеміршек — «Адам алмасы»']],
+thyroid:['Қалқанша без','Glandula thyroidea','Зат алмасуды реттейтін гормондар бөледі.',['Екі бөліктен және оларды жалғайтын мойнақтан тұрады','Гормондарына йод қажет']],
+esophagus:['Өңеш','Oesophagus','Жұтқыншақтан асқазанға тағам өткізетін бұлшықетті түтік.',['Ұзындығы шамамен 25 см','Кеңірдектің артында жатады']],
+liver:['Бауыр','Hepar','Ең ірі ішкі мүше. Өт бөледі, уытты заттарды залалсыздандырады, гликоген қорын сақтайды.',['Салмағы шамамен 1,5 кг','Бір бөлігі алынса да қайта өсе алады']],
+gallbladder:['Өт қабы','Vesica biliaris','Бауыр бөлетін өтті жинап, қоюлатады.',['Көлемі 30–50 мл','Тас түзілуі жиі кездеседі']],
+stomach:['Асқазан','Gaster','Тағамды уақытша сақтап, тұз қышқылы мен ферменттер арқылы қорыта бастайды.',['Бос кезде ~50 мл, толғанда 1–1,5 л-ге дейін созылады']],
+spleen:['Көкбауыр','Splen','Ескі эритроциттерді жояды, иммундық жүйеге қатысады.',['Сол қабырға астында, 9–11 қабырғалар деңгейінде']],
+pancreas:['Ұйқы безі','Pancreas','Ас қорыту ферменттерін және инсулин мен глюкагонды бөледі.',['Ұзындығы 15–20 см','Асқазанның артында жатады']],
+kidney:['Бүйрек','Ren','Қанды сүзіп, зәр түзеді; су-тұз балансы мен қан қысымын реттейді.',['Тәулігіне ~180 л біріншілік зәр сүзіледі','Оң бүйрек бауырға байланысты сәл төменірек']],
+adrenal:['Бүйрекүсті безі','Glandula suprarenalis','Адреналин, кортизол және альдостерон гормондарын бөледі.',['Бүйректің жоғарғы ұшында орналасқан']],
+ureter:['Несепағар','Ureter','Бүйректен қуыққа зәр өткізетін түтік.',['Ұзындығы 25–30 см','Тас көбіне тар жерлерінде тұрып қалады']],
+bladder:['Қуық','Vesica urinaria','Зәрді жинайтын бұлшықетті мүше.',['Сыйымдылығы 350–500 мл']],
+small_int:['Аш ішек','Intestinum tenue','Қоректік заттардың негізгі бөлігі осында сіңеді.',['Ұзындығы шамамен 6 м','Бөліктері: он екі елі ішек, аш ішек, мықын ішек']],
+colon:['Тоқ ішек','Intestinum crassum','Су сіңеді және нәжіс түзіледі.',['Ұзындығы шамамен 1,5 м','Бөліктері: соқыр ішек, жиек ішек, тік ішек']],
+pectoralis:['Үлкен кеуде бұлшықеті','M. pectoralis major','Қолды денеге жақындатады және ішке айналдырады.',['Кеуденің алдыңғы бетін жабады']],
+deltoid:['Дельта тәрізді бұлшықет','M. deltoideus','Қолды бүйірге көтереді.',['Бұлшықет ішіне екпе жиі осы жерге салынады']],
+biceps:['Иықтың екі басты бұлшықеті','M. biceps brachii','Шынтақты бүгеді және білекті алақан жоғары қарай айналдырады.',['Екі басы да жауырыннан басталады']],
+triceps:['Иықтың үш басты бұлшықеті','M. triceps brachii','Шынтақты жазады.',['Иықтың артқы бетіндегі жалғыз бұлшықет']],
+flexors:['Білектің бүккіш бұлшықеттері','Mm. flexores antebrachii','Қол басы мен саусақтарды бүгеді.',['Көбі тоқпан жіліктің ішкі айдаршығынан басталады']],
+rectus_abd:['Іштің тік бұлшықеті','M. rectus abdominis','Денені алға бүгеді, іш қысымын арттырады.',['Сіңір көпірлері «текше» пішінін береді']],
+oblique:['Іштің сыртқы қиғаш бұлшықеті','M. obliquus externus abdominis','Денені бұрады және бүйірге бүгеді.',['Іш қабырғасының ең беткей бұлшықеті']],
+trapezius:['Трапеция тәрізді бұлшықет','M. trapezius','Жауырынды көтереді, түсіреді және омыртқаға жақындатады.',['Мойын мен арқаның жоғарғы бөлігін жабады']],
+latissimus:['Арқаның жалпақ бұлшықеті','M. latissimus dorsi','Қолды төмен және артқа тартады.',['Арқадағы ең үлкен бұлшықет']],
+scm:['Төс-бұғана-емізікше бұлшықеті','M. sternocleidomastoideus','Басты бұрады және еңкейтеді.',['Мойынды алдыңғы және бүйір үшбұрыштарға бөледі']],
+diaphragm:['Көкет','Diaphragma','Кеуде мен іш қуысын бөлетін күмбез тәрізді бұлшықет. Негізгі тыныс бұлшықеті.',['Жиырылғанда төмен түсіп, өкпеге ауа кіреді','Одан қолқа, өңеш және төменгі қуыс вена өтеді']],
+gluteus:['Үлкен бөксе бұлшықеті','M. gluteus maximus','Санды жазады — сатымен көтерілу мен жүгіруге қажет.',['Денедегі ең ірі бұлшықеттердің бірі']],
+quadriceps:['Санның төрт басты бұлшықеті','M. quadriceps femoris','Тізені жазады.',['Сіңірінің ішінде тізе тостағаны бар','Тізе рефлексі — осы бұлшықеттің жиырылуы']],
+sartorius:['Тігінші бұлшықеті','M. sartorius','Санды бүгіп, сыртқа айналдырады.',['Денедегі ең ұзын бұлшықет']],
+hamstrings:['Санның артқы бұлшықеттері','Mm. ischiocrurales','Тізені бүгеді және санды жазады.',['Үш бұлшықет: екі басты, жартылай сіңірлі, жартылай жарғақты']],
+adductors:['Санды әкелуші бұлшықеттер','Mm. adductores','Санды ортаңғы сызыққа жақындатады.',['Санның ішкі бетінде орналасқан']],
+gastrocnemius:['Балтыр бұлшықеті','M. gastrocnemius','Табанды бүгеді — аяқ ұшына көтерілуге мүмкіндік береді.',['Сіңірі — ахилл сіңірі, денедегі ең мықты сіңір']],
+tib_ant:['Алдыңғы жіліншік бұлшықеті','M. tibialis anterior','Табанды жоғары көтереді.',['Әлсіресе, жүргенде табан сүйретіледі']]
+};
+const LAY=[{k:'sk',n:'Қаңқа',c:'#eadfc8',on:1},{k:'ar',n:'Жүрек және артериялар',c:'#d2232b',on:1},{k:'ve',n:'Веналар',c:'#2d5fd1',on:1},{k:'ne',n:'Жүйке жүйесі',c:'#f2c94c',on:1},{k:'or',n:'Ішкі мүшелер',c:'#e7909b',on:0},{k:'mu',n:'Бұлшықеттер',c:'#a9322d',on:0},{k:'skin',n:'Тері',c:'#e2b9a1',on:0}];
+const right=document.getElementById('right');
+/* ---------- Видеосабақтар: атауларды осы жерде өзгертуге болады ---------- */
+/* m: модуль кілті — head, trunk, organs, arm, leg, general немесе none (бөлінбеген) */
+const VIDEOS=[
+ {id:'CBnqfQxWNTY',t:'1-сабақ',m:'none'},
+ {id:'tgCKhXOLzII',t:'2-сабақ',m:'none'},
+ {id:'XkouQKFEAOU',t:'3-сабақ',m:'none'},
+ {id:'FjRwybqwJow',t:'4-сабақ',m:'none'},
+ {id:'iwq3zQl6oV4',t:'5-сабақ',m:'none'},
+ {id:'IVxpsPBAbuA',t:'6-сабақ',m:'none'},
+ {id:'RZTpaS7GYnc',t:'7-сабақ',m:'none'},
+ {id:'0-bGxVeKqDM',t:'8-сабақ',m:'none'},
+ {id:'YhYl9oOnMJ4',t:'9-сабақ',m:'none'},
+ {id:'2xFJCsmhAm8',t:'10-сабақ',m:'none'},
+ {id:'h36WxMmxeVM',t:'11-сабақ',m:'none'},
+ {id:'XMHvMA1jTAk',t:'12-сабақ',m:'none'},
+ {id:'fVW7qpR5WAs',t:'13-сабақ',m:'none'},
+ {id:'ucYrcULkSYo',t:'14-сабақ',m:'none'},
+ {id:'ZbBvkDJwEHg',t:'15-сабақ',m:'none'},
+ {id:'Ph5tJqzHsvA',t:'16-сабақ',m:'none'},
+ {id:'dzT9E7Z7l1w',t:'17-сабақ',m:'none'},
+ {id:'9-tubbGj0z4',t:'18-сабақ',m:'none'},
+ {id:'seWJsWrloq4',t:'19-сабақ',m:'none'},
+ {id:'1Rx80jif3wY',t:'20-сабақ',m:'none'},
+ {id:'Q8L1GPoLrRI',t:'21-сабақ',m:'none'}];
+const MODS=[['head','Бас және мойын'],['trunk','Тұлға'],['organs','Ішкі мүшелер'],['arm','Қол'],['leg','Аяқ'],['general','Жалпы анатомия'],['none','Модульге бөлінбеген']];
+const VC=['#7a1f2b','#1f3f7a','#7a5a12','#2d6b4f'];
+const vsec=document.getElementById('videos'),player=document.getElementById('player'),pframe=document.getElementById('pframe'),pblock=document.getElementById('pblock'),plink=document.getElementById('plink');
+const PLAY='<svg viewBox="0 0 58 58" aria-hidden="true"><circle cx="29" cy="29" r="28" fill="#fff"/><path d="M23 18l18 11-18 11z" fill="#111"/></svg>';
+let vmod='all';const mtabs=document.getElementById('mtabs'),vgrid=document.getElementById('vgrid');
+const card=(x,i)=>`<a class="vc" id="vid-${x.id}" href="https://www.youtube.com/watch?v=${x.id}" data-i="${i}"><div class="thumb" style="--c1:${VC[i%4]}">${PLAY}<span class="num">${String(i+1).padStart(2,'0')}</span></div><div class="meta"><b>${x.t}</b><span>YouTube · ${MODS.find(m=>m[0]===x.m)[1]}</span></div></a>`;
+function drawVids(){const used=MODS.filter(m=>VIDEOS.some(x=>x.m===m[0]));
+ mtabs.innerHTML=[['all','Барлығы']].concat(used).map(([k,n])=>`<button id="mt-${k}" data-k="${k}" aria-pressed="${k===vmod}">${n} <small>${k==='all'?VIDEOS.length:VIDEOS.filter(x=>x.m===k).length}</small></button>`).join('');
+ vgrid.innerHTML=used.filter(m=>vmod==='all'||m[0]===vmod).map(([k,n])=>`<section class="mod"><div class="mhead"><h3>${n}</h3>${k!=='none'&&k!=='general'?`<button class="btn" data-reg="${k}">3D атласта ашу</button>`:''}</div><div class="vgrid">${VIDEOS.map((x,i)=>x.m===k?card(x,i):'').join('')}</div></section>`).join('')}
+mtabs.addEventListener('click',e=>{const b=e.target.closest('button');if(b){vmod=b.dataset.k;drawVids()}});
+drawVids();
+vsec.querySelector('.vwrap').insertAdjacentHTML('beforeend','<p class="vnote">Видео ашылмаса, «YouTube-та ашу» батырмасын басыңыз.</p>');
+let blocked=false;
+document.addEventListener('securitypolicyviolation',e=>{if(/frame/.test(e.violatedDirective||e.effectiveDirective||'')){blocked=true;showBlock()}});
+function showBlock(){pframe.innerHTML='';pframe.hidden=true;pblock.hidden=false}
+function closeP(){player.hidden=true;pframe.innerHTML=''}
+vgrid.addEventListener('click',e=>{const rb=e.target.closest('[data-reg]');if(rb){document.getElementById('mAtlas').click();if(window.__goRegion)window.__goRegion(rb.dataset.reg);return}const a=e.target.closest('.vc');if(!a)return;e.preventDefault();const x=VIDEOS[+a.dataset.i];
+ document.getElementById('ptitle').textContent=x.t;plink.href=document.getElementById('plink2').href='https://www.youtube.com/watch?v='+x.id;player.hidden=false;
+ if(blocked){showBlock();return}pblock.hidden=true;pframe.hidden=false;
+ pframe.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${x.id}?autoplay=1&rel=0" title="${x.t}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+ document.getElementById('pclose').focus()});
+document.getElementById('pclose').onclick=closeP;
+player.addEventListener('click',e=>{if(e.target===player)closeP()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!player.hidden)closeP()});
+document.getElementById('rec').innerHTML=[['head','Бас және мойын'],['trunk','Тұлға'],['organs','Ішкі мүшелер'],['arm','Қол'],['leg','Аяқ']].map(([k,n])=>`<figure><video src="media/${k}.mp4" poster="media/${k}.jpg" muted loop playsinline controls preload="none"></video><figcaption>${n}</figcaption></figure>`).join('');
+const mVid=document.getElementById('mVideo');
+mVid.onclick=()=>{vsec.hidden=false;['mAtlas','mQuiz'].forEach(i=>document.getElementById(i).setAttribute('aria-pressed','false'));mVid.setAttribute('aria-pressed','true')};
+['mAtlas','mQuiz'].forEach(i=>document.getElementById(i).addEventListener('click',e=>{vsec.hidden=true;closeP();mVid.setAttribute('aria-pressed','false');e.currentTarget.setAttribute('aria-pressed','true')}));
+if(location.hash==='#video')mVid.click();
+if(!window.THREE){document.getElementById('err').hidden=false}else{try{start()}catch(e){console.error(e);document.getElementById('err').hidden=false}}
+
+function start(){
+const T=THREE,V3=T.Vector3;
+const cv=document.getElementById('c');
+const ren=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+ren.setPixelRatio(Math.min(window.devicePixelRatio||1,2));ren.setClearColor(0,0);
+const scene=new T.Scene();
+const cam=new T.PerspectiveCamera(30,1,1,3000);
+scene.add(new T.HemisphereLight(0xffffff,0x30303a,.75));
+const d1=new T.DirectionalLight(0xffffff,.85);d1.position.set(80,140,160);scene.add(d1);
+const d2=new T.DirectionalLight(0xbfd4ff,.35);d2.position.set(-100,60,-140);scene.add(d2);
+const S=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,roughness:.5,metalness:0},o||{}));
+const M={bone:S(0xeadfc8,{roughness:.62,transparent:true}),sock:S(0x3a2c26,{roughness:.9,transparent:true}),art:S(0xd2232b,{roughness:.35}),vein:S(0x2d5fd1,{roughness:.35}),nerve:S(0xf2c94c,{roughness:.45,emissive:0x2a1e00}),heart:S(0x9c2421,{roughness:.45}),brain:S(0xe5a9a2,{roughness:.7}),lung:S(0xe7909b,{transparent:true,opacity:.5,depthWrite:false,roughness:.6}),liver:S(0x7d2b22),gall:S(0x4f8a3a),stomach:S(0xd88a77),spleen:S(0x6c2840),pancreas:S(0xe0b07c),kidney:S(0x8d3030),adrenal:S(0xd9a441),ureter:S(0xe2c27a),bladder:S(0xe1bf7a),intest:S(0xe8a690),colon:S(0xc98b70),trach:S(0xdcc8b6),thyroid:S(0xb44848),esoph:S(0xc77a6b),mus:S(0xa9322d,{roughness:.7,transparent:true,opacity:.92}),diaph:S(0xb54a3f,{transparent:true,opacity:.5,side:T.DoubleSide,depthWrite:false}),skin:S(0xe2b9a1,{transparent:true,opacity:.13,depthWrite:false,roughness:.8})};
+const G={},pick=[],byId={};
+LAY.forEach(l=>{G[l.k]=new T.Group();G[l.k].userData.k=l.k;G[l.k].visible=!!l.on;scene.add(G[l.k])});
+let L='sk';
+const SPH=new T.SphereGeometry(1,28,18),CYL=new T.CylinderGeometry(1,1,1,14),BOX=new T.BoxGeometry(1,1,1),TOR=new T.TorusGeometry(.95,.32,8,18);
+const v=a=>a.isVector3?a.clone():new V3(a[0],a[1],a[2]);
+const mir=(s,P)=>P.map(q=>[s*q[0],q[1],q[2]]);
+const SIDES=[-1,1];
+function put(mesh,id){mesh.userData.id=id;mesh.userData.m=mesh.material;G[L].add(mesh);if(id){pick.push(mesh);(byId[id]=byId[id]||[]).push(mesh)}return mesh}
+function tube(P,r,mat,id,seg){const c=new T.CatmullRomCurve3(P.map(v));return put(new T.Mesh(new T.TubeGeometry(c,seg||Math.max(24,P.length*14),r,8,false),mat),id)}
+function ell(p,s,mat,id,rot){const m=new T.Mesh(SPH,mat);m.position.copy(v(p));m.scale.set(s[0],s[1],s[2]);if(rot)m.rotation.set(rot[0],rot[1],rot[2]);return put(m,id)}
+function rod(a,b,r,mat,id){const A=v(a),B=v(b),d=B.clone().sub(A),len=d.length();const m=new T.Mesh(CYL,mat);m.scale.set(r,len,r);m.position.copy(A).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new V3(0,1,0),d.normalize());return put(m,id)}
+function bone(a,b,r,id,k){rod(a,b,r,M.bone,id);const e=r*(k||1.35);ell(a,[e,e,e],M.bone,id);ell(b,[e,e,e],M.bone,id)}
+function chain(start,dir,lens,r,id,bend){let p=v(start);const d=v(dir).normalize();const pts=[p.clone()];lens.forEach((len,i)=>{const q=p.clone().addScaledVector(d,len);const rr=r*(1-i*.14);rod(p,q,rr,M.bone,id);ell(q,[rr*1.25,rr*1.25,rr*1.25],M.bone,id);pts.push(q.clone());p=q;d.add(v(bend)).normalize()});return pts}
+const zs=y=>-5.5+1.2*Math.sin((y-88)/62*2*Math.PI);
+
+/* ---------- Қаңқа ---------- */
+L='sk';
+ell([0,163,-1],[8.2,9,10],M.bone,'skull');
+ell([0,155.5,3.2],[6.3,6,6.2],M.bone,'skull');
+SIDES.forEach(s=>{ell([s*2.9,158.5,8.2],[1.7,1.5,.7],M.sock,'skull');ell([s*6.1,156,2.2],[1.6,1.3,2.6],M.bone,'skull')});
+ell([0,155.4,9.1],[.9,1.3,.5],M.sock,'skull');
+tube([[-5.6,157,0],[-5.2,151,2.6],[-3,147.8,6.4],[0,147,7.6],[3,147.8,6.4],[5.2,151,2.6],[5.6,157,0]],1,M.bone,'mandible');
+ell([0,147.6,7.5],[1.8,1.2,1],M.bone,'mandible');
+const VY=[];for(let i=0;i<7;i++)VY.push(['cerv',150-i*1.95,1,1.2]);for(let i=0;i<12;i++)VY.push(['thor',136-i*2.75,1.4,1.7]);for(let i=0;i<5;i++)VY.push(['lumb',102.5-i*3.3,1.9,2.3]);
+VY.forEach(([id,y,r,h])=>{const z=zs(y);
+ const b=new T.Mesh(CYL,M.bone);b.position.set(0,y,z+1.3);b.scale.set(r,h,r*.85);put(b,id);
+ const sp=new T.Mesh(BOX,M.bone);sp.position.set(0,y-.4,z-2.4);sp.scale.set(.55,.8*h,2.2);sp.rotation.x=.35;put(sp,id);
+ const tr=new T.Mesh(BOX,M.bone);tr.position.set(0,y,z-.6);tr.scale.set(2*r+3,.55,.6);put(tr,id);
+ const ar=new T.Mesh(TOR,M.bone);ar.position.set(0,y,z-.6);ar.rotation.x=Math.PI/2;put(ar,id)});
+ell([0,85.5,-6.6],[3.4,5.2,1.4],M.bone,'sacrum',[.35,0,0]);
+ell([0,79.8,-5.4],[.8,1.4,.6],M.bone,'sacrum',[.6,0,0]);
+const RW=[6.5,9,10.6,11.6,12.4,13,13.4,13.5,13.2,12.6,11.2,9.8],RIBS=[];
+for(let i=0;i<12;i++){const y=136-i*2.75,z0=zs(y),w=RW[i];
+ let P=[[1.4,y,z0-.3],[w*.55,y+.2,z0-1.7],[w*.95,y-1.2,-2.5],[w,y-2.6,1.5]];
+ if(i<7){const ey=133.5-i*2.9;P.push([w*.8,y-4.2,5.6],[w*.42,(y-4.2+ey)/2,8.1],[1.9,ey,8.7])}
+ else if(i<10)P.push([w*.8,y-4.4,5.4],[w*.5,y-6,7.4],[3+(i-7)*1.4,114.5-(i-7),8.2]);
+ else P=P.slice(0,3).concat([[w*.98,y-3,.5],[w*.85,y-4.2,3]]);
+ SIDES.forEach(s=>{const mm=mir(s,P);tube(mm,.5,M.bone,'rib').userData.x=i+1;RIBS.push(mm)})}
+ell([0,133,8.9],[2.4,2.2,.7],M.bone,'sternum');ell([0,124.5,9.1],[1.6,7,.6],M.bone,'sternum');ell([0,116.6,8.8],[.7,1.6,.4],M.bone,'sternum');
+const HX=22.5,FING={1:[],'-1':[]};
+SIDES.forEach(s=>{
+ tube(mir(s,[[1.8,134.5,8.3],[6,135.5,7.2],[10,135.8,4.6],[14,136.6,1.6],[16.5,136.4,-.4]]),.62,M.bone,'clavicle');
+ ell([s*10.5,127,-8.3],[4.2,7.5,.7],M.bone,'scapula',[0,-s*.45,s*.12]);
+ tube(mir(s,[[6,131,-9],[12,132.5,-7.8],[16,134.5,-3]]),.5,M.bone,'scapula');
+ ell([s*16.8,133,-.8],[2.3,2.3,2.3],M.bone,'humerus');
+ rod([s*17.4,131,-.6],[s*19.8,106.5,.2],.95,M.bone,'humerus');
+ ell([s*19.9,105.2,.3],[2.6,1.2,1.4],M.bone,'humerus');
+ rod([s*21.3,103.5,1.2],[s*23.6,80.5,2.2],.62,M.bone,'radius');ell([s*21.3,103.6,1.2],[.9,.6,.9],M.bone,'radius');ell([s*23.6,79.8,2.1],[1.4,.9,1.1],M.bone,'radius');
+ rod([s*18.9,104.5,-1],[s*21.2,80.5,.6],.6,M.bone,'ulna');ell([s*18.8,105.5,-1.6],[1.1,1.4,1.1],M.bone,'ulna');ell([s*21.2,80,.6],[.8,.7,.8],M.bone,'ulna');
+ [-1.6,-.5,.6,1.6].forEach(dx=>{ell([s*(HX+dx),78.3,1.7],[.7,.7,.75],M.bone,'carpals');ell([s*(HX+dx*1.05),76.9,1.8],[.7,.65,.75],M.bone,'carpals')});
+ const FD=[{dx:2.3,ph:[2.9,2.2]},{dx:1.7,len:6.3,ph:[3.6,2.2,1.6]},{dx:.55,len:6.2,ph:[4,2.6,1.7]},{dx:-.55,len:5.7,ph:[3.7,2.4,1.6]},{dx:-1.6,len:5.1,ph:[2.9,1.8,1.4]}];
+ FD.forEach((f,i)=>{let a,b;if(i===0){a=[s*(HX+2.3),76.4,2.4];b=[s*(HX+4.3),72.3,4.1]}else{a=[s*(HX+f.dx),75.8,1.8];b=[s*(HX+f.dx*1.4),75.8-f.len,2.3]}
+  rod(a,b,i===0?.5:.45,M.bone,'metacarpals');ell(b,[.6,.6,.6],M.bone,'metacarpals');
+  const tips=chain(b,v(b).sub(v(a)),f.ph,.4,'phalanges_h',[0,0,.12]);FING[s].push({dx:f.dx,a,b,pts:tips})});
+ tube(mir(s,[[3.2,88,-5.5],[7.2,86.5,-2.2],[7.6,83.5,1.8],[5,81,4.5],[1.2,80.2,5.2]]),1.1,M.bone,'pelvis');
+ tube(mir(s,[[7.6,83.5,1.8],[7.3,79.5,-.5],[5.8,77.6,-1.6],[3.2,78.8,2.5],[1.2,80.2,5.2]]),.9,M.bone,'pelvis');
+ ell([s*8.8,92.5,-2.5],[4.8,6.2,1.4],M.bone,'pelvis',[0,s*.55,-s*.22]);
+ ell([s*9.1,82.4,1.3],[2.1,2.1,2.1],M.bone,'femur');rod([s*9.1,82.4,1.3],[s*12,80.2,.3],1.1,M.bone,'femur');ell([s*12.8,80.5,-.2],[1.6,2,1.6],M.bone,'femur');
+ rod([s*12.2,79.5,.3],[s*8.6,47.5,.6],1.15,M.bone,'femur');ell([s*8.5,46.4,.2],[2.9,1.6,2.4],M.bone,'femur');
+ ell([s*8.5,46.6,3.2],[1.3,1.7,.6],M.bone,'patella');
+ ell([s*8.1,44.3,.4],[2.7,1.1,2.2],M.bone,'tibia');rod([s*8,44,.6],[s*7.2,6.5,.2],1,M.bone,'tibia');ell([s*6.4,5.2,.2],[1.1,1.3,1.1],M.bone,'tibia');
+ bone([s*10.5,43.6,-.9],[s*9.6,5.8,-.6],.45,'fibula',1.8);ell([s*9.6,5,-.6],[.9,1.4,.9],M.bone,'fibula');
+ ell([s*7.8,3.8,.2],[1.6,1.1,1.8],M.bone,'tarsals');ell([s*7.9,2.2,-2],[1.5,1.6,2.5],M.bone,'tarsals');ell([s*7.2,2.9,3],[2.2,1,1.4],M.bone,'tarsals');
+ [-2.2,-.9,.25,1.3,2.25].forEach((dx,i)=>{const a=[s*(7.4+dx*.7),2.7,4.2],b=[s*(7.4+dx),1.2,10.2-i*.4];rod(a,b,i?.42:.62,M.bone,'metatarsals');ell(b,[i?.5:.7,i?.5:.7,i?.5:.7],M.bone,'metatarsals');
+  const k=1-i*.07;chain(b,[s*dx*.04,-.15,1],i?[1.5*k,1*k,.7*k]:[2,1.6],i?.38:.55,'phalanges_f',[0,-.1,0])});
+});
+
+/* ---------- Жүрек және артериялар ---------- */
+L='ar';
+ell([1.8,119.6,3.3],[4,5.1,3.7],M.heart,'heart',[.15,0,.6]);ell([0,122.6,2.2],[3.2,2.2,2.8],M.heart,'heart');
+tube([[.8,122.3,5.4],[2,119.5,6.9],[3.6,116.5,6.4],[4.8,114.5,4.6]],.22,M.art,'coronary');
+tube([[-.6,122,5.2],[-1.6,119,5.8],[-1.4,115.5,5.2]],.2,M.art,'coronary');
+const AO=[[.6,121.5,4],[0,125.5,3.6],[.6,128.4,2.2],[1.8,128.6,0],[2.2,126.8,-1.6]];[124,118,112,106,100,94,89].forEach(y=>AO.push([1.9-(124-y)*.03,y,zs(y)+3.8]));
+tube(AO,.95,M.art,'aorta',90);
+const AE=AO[AO.length-1];
+tube([[.4,128.2,2.4],[-.6,129.4,2.2],[-1.6,130.4,2]],.6,M.art,'brachioceph');
+tube([[-1.6,130.4,2],[-2.8,138,2],[-3.2,146,1.6],[-3.5,151,1.6]],.45,M.art,'carotid');
+tube([[1.2,128.8,1.4],[2.6,136,2],[3.2,146,1.6],[3.5,151,1.6]],.45,M.art,'carotid');
+tube([[-1.6,130.4,2],[-5.5,133,1.6],[-10,133.6,1.2],[-13.5,133,.8]],.45,M.art,'subclavian');
+tube([[1.9,128.5,.4],[5.5,133,1.4],[10,133.6,1.2],[13.5,133,.8]],.45,M.art,'subclavian');
+const ah=y=>zs(y)+3.8;
+SIDES.forEach(s=>{
+ tube(mir(s,[[3.5,151,1.6],[4.5,154,3.2],[5.3,156.5,5],[6.3,159,3.6]]),.3,M.art,'carotid');
+ tube(mir(s,[[3.5,151,1.6],[5.8,155,-.3],[7.6,160,.3],[8,166,0]]),.25,M.art,'carotid');
+ tube(mir(s,[[13.5,133,.8],[16.5,130.5,.6],[18.4,125,.9]]),.42,M.art,'axillary');
+ tube(mir(s,[[18.4,125,.9],[19.4,116,1.7],[20.3,108,2.3],[20.8,104.4,2.5]]),.38,M.art,'brachial');
+ tube(mir(s,[[20.8,104.4,2.5],[22,97,2.8],[23.3,88,2.8],[24.1,80.5,2.6],[24.3,77.5,2.9]]),.28,M.art,'radial');
+ tube(mir(s,[[20.8,104.4,2.5],[20.1,99,2],[20.4,90,1.6],[21.1,80.5,1.5],[21.4,77.5,2.6]]),.28,M.art,'ulnar');
+ tube(mir(s,[[21.4,77.5,2.6],[21.6,74.5,3.1],[22.6,73.4,3.3],[23.7,74,3.2],[24.3,75.5,3],[24.3,77.5,2.9]]),.22,M.art,'palmar');
+ FING[s].forEach(f=>{[-1,1].forEach(o=>{const P=[[s*(HX+f.dx*1.15),73.6,3.3]].concat(f.pts.map(q=>[q.x+o*.36,q.y,q.z+.42]));tube(P,.11,M.art,'digital_a')})});
+ tube([[1.8,98.5,ah(98.5)],[s*2.6,98.2,-1.2],[s*3.5,98+(s>0?.6:-.4),-2.4]],.32,M.art,'renal_a');
+ tube([AE,[s*3.2,86.6,-.6],[s*5.6,84.6,1],[s*7,82.8,2.8],[s*7.8,80.8,3.8]],.55,M.art,'iliac_a');
+ tube(mir(s,[[5.6,84.6,1],[5.2,82,-2],[4.5,80,-3]]),.35,M.art,'iliac_a');
+ tube(mir(s,[[7.8,80.8,3.8],[9.2,74,3.8],[9.5,66,3],[9.2,57,1.4],[8.8,51.5,-.8]]),.48,M.art,'femoral');
+ tube(mir(s,[[9.2,76,3.6],[10.6,72,2],[11.2,64,.5],[10.8,56,-.6]]),.32,M.art,'femoral');
+ tube(mir(s,[[8.8,51.5,-.8],[8.4,47,-2.6],[8.2,42.5,-2.4]]),.42,M.art,'popliteal');
+ tube(mir(s,[[8.2,42.5,-2.4],[9.2,40.5,-.2],[9.1,32,1.6],[8.3,18,2.1],[7.6,7,2.4],[7.3,4.6,3.3]]),.3,M.art,'ant_tibial');
+ tube(mir(s,[[7.3,4.6,3.3],[6.9,3.6,5.6],[6.2,2.6,8.8]]),.26,M.art,'dorsalis');
+ tube(mir(s,[[8.2,42.5,-2.4],[7.5,32,-2.6],[6.6,15,-2.2],[5.8,6,-1.2],[5.9,2.4,1],[6.4,1.2,4.5]]),.3,M.art,'post_tibial');
+});
+
+/* ---------- Веналар ---------- */
+L='ve';
+tube([[.8,121.5,5.5],[1.5,125,4.2],[.8,126.6,1.8]],.75,M.vein,'pulmtrunk');
+SIDES.forEach(s=>tube([[.8,126.6,1.8],[s*2.4,125.6,1.2],[s*4.4,124.4,.8]],.5,M.vein,'pulmtrunk'));
+tube([[-1.4,121.5,3.2],[-2.1,125,2.8],[-2.3,129.2,2.2]],.8,M.vein,'svc');
+const iz=y=>zs(y)+3.4;
+tube([[-1.2,117.8,2.2],[-1.6,113,1.4],[-1.7,106,iz(106)],[-1.6,98,iz(98)],[-1.4,89.5,iz(89.5)]],.9,M.vein,'ivc');
+tube([[-2.3,129.2,2.2],[-3.5,131.2,2.4],[-4.3,132,2.4]],.6,M.vein,'bc_vein');
+tube([[-2.3,129.2,2.2],[.5,130.6,2.8],[3.2,131.6,2.6],[4.3,132,2.4]],.6,M.vein,'bc_vein');
+SIDES.forEach(s=>{
+ tube(mir(s,[[4.3,132,2.4],[4.4,140,2],[4.4,147,1.2],[4,151.5,.4],[3.4,154.5,-1.2]]),.55,M.vein,'ijv');
+ tube(mir(s,[[6.6,133.4,2.4],[6.2,140,2.6],[5.6,148,2.2],[5.8,154,.6]]),.3,M.vein,'ejv');
+ tube(mir(s,[[4.3,132,2.4],[9,133.6,2.6],[13.5,133.2,1.6]]),.55,M.vein,'subclavian_v');
+ tube(mir(s,[[13.5,133.2,1.6],[16.8,130.4,1.4],[18.9,125,.3],[19.8,116,1.1],[20.4,108,1.7],[20.6,104.4,1.9]]),.4,M.vein,'brachial_v');
+ tube(mir(s,[[13,133.6,2.4],[15.6,131.8,3.6],[18.2,127,3.6],[20.6,118,3.4],[22,110,3.3],[22.7,104,3.4],[23.8,96,3.4],[24.8,86,3.1],[25,80.5,2.4],[24.4,77,.6]]),.32,M.vein,'cephalic');
+ tube(mir(s,[[18.6,121,.2],[19.1,112,.9],[19.5,105,1.9],[19.6,97,2],[20.2,88,1.3],[20.8,80.5,.4],[21.4,77,.2]]),.32,M.vein,'basilic');
+ tube(mir(s,[[22.6,101,3.5],[21.4,103.2,3.2],[19.7,106,2.2]]),.26,M.vein,'median_cubital');
+ tube(mir(s,[[21.4,77,.2],[22,74.5,.1],[23.2,73.8,.3],[24.3,75,.4],[24.4,77,.6]]),.18,M.vein,'dorsal_hand_v');
+ FING[s].slice(1).forEach(f=>tube([[s*(HX+f.dx*1.1),74,.2],[f.b[0],f.b[1]+.6,f.b[2]-.9],[f.pts[1].x,f.pts[1].y,f.pts[1].z-.7]],.13,M.vein,'dorsal_hand_v'));
+ tube([[-1.6,98,iz(98)],[s*2.4,98,-1.2],[s*3.4,98+(s>0?.6:-.4),-2.2]],.35,M.vein,'renal_v');
+ tube([[-1.4,89.5,iz(89.5)],[s*3.6,86.2,-1.2],[s*6.2,83.8,.6],[s*6.9,81.6,3]],.55,M.vein,'iliac_v');
+ tube(mir(s,[[6.9,81.6,3],[8.2,74,3.4],[8.6,66,2.6],[8.4,57,1],[8,51.5,-1.2]]),.48,M.vein,'femoral_v');
+ tube(mir(s,[[8,51.5,-1.2],[7.8,47,-3],[7.6,42.5,-2.9]]),.42,M.vein,'popliteal_v');
+ tube(mir(s,[[7.6,42.5,-2.9],[7,32,-3],[6.1,15,-2.6],[5.4,6,-1.6]]),.3,M.vein,'post_tibial_v');
+ tube(mir(s,[[6.9,81.6,3],[6.8,78,4.8],[6.5,70,5],[5.6,58,3.6],[5,48,.4],[5.2,38,.4],[5.4,22,1],[5.4,8,2],[5.6,4.6,3.6],[6.4,3.4,6.2]]),.3,M.vein,'gsv');
+ tube(mir(s,[[6.4,3.4,6.2],[7.6,3.1,7.4],[9.4,2.8,6.6],[10.2,2.6,3],[10,4.5,-1.5],[9.2,10,-2.6],[8.6,22,-4],[8.2,34,-4.6],[8,45,-3.6],[7.8,47,-3]]),.26,M.vein,'ssv');
+});
+
+/* ---------- Жүйке жүйесі ---------- */
+L='ne';
+ell([0,164.2,-1.2],[7.3,7.3,8.8],M.brain,'brain');
+tube([[0,171.4,-6],[0,171.6,0],[0,168,6]],.18,M.sock,'brain');
+ell([0,157.6,-6.4],[4.6,2.8,3.2],M.brain,'cerebellum');
+rod([0,158,-3],[0,152.5,-3.6],.9,M.nerve,'brainstem');
+const CORD=[[0,152.5,-3.6]];for(let y=150;y>=100;y-=5)CORD.push([0,y,zs(y)-.6]);tube(CORD,.5,M.nerve,'cord',120);
+[-.6,-.25,.25,.6].forEach(o=>tube([[0,100.5,zs(100.5)-.6],[o,94,zs(94)-.6],[o*1.5,87,zs(87)-.4]],.12,M.nerve,'cord'));
+RIBS.forEach(P=>tube(P.slice(0,5).map(q=>[q[0]*.97,q[1]-1,q[2]]),.13,M.nerve,'intercostal'));
+SIDES.forEach(s=>{
+ [142,140,138,136,134].forEach(y=>tube([[s*1.6,y,zs(y)-.2],[s*6,135.2,-.8],[s*11,134,.2],[s*15.5,131.8,.2]],.28,M.nerve,'plexus_br'));
+ tube(mir(s,[[15.5,131.8,.2],[18.8,124,1.4],[19.8,112,2],[20.7,104.5,2.4],[21.8,96,2.4],[22.4,86,2.3],[22.6,79.5,2.4],[22.6,76,3]]),.28,M.nerve,'median');
+ tube(mir(s,[[15.5,131.8,.2],[18.2,124,-.2],[18.6,112,-.8],[18.9,105,-2.2],[19.6,96,.6],[20.6,86,.9],[21.2,79.5,.9],[21.4,76,2.4]]),.26,M.nerve,'ulnar');
+ tube(mir(s,[[15.5,131.8,.2],[17.5,126,-1.2],[19.6,118,-2.6],[21.8,110,-.8],[22.4,104.5,1.6],[23.4,96,2.4],[24,84,2.4],[24.2,78,.8]]),.26,M.nerve,'radial');
+ tube(mir(s,[[15.5,131.8,.2],[17.5,128,1],[19.6,116,2.6],[21.8,104,2.8],[23,96,3.2]]),.2,M.nerve,'musculo');
+ FING[s].forEach((f,i)=>tube([[s*(HX+f.dx*.6),75.5,3]].concat(f.pts.map(q=>[q.x-s*.36*(i<3?1:-1),q.y,q.z+.45])),.1,M.nerve,i<3?'median':'ulnar'));
+ tube(mir(s,[[2.4,152,-1.4],[3.5,146,.8],[3.6,138,1.2],[2.5,130,.6],[1.8,122,-1.6],[1.2,112,-.4],[.8,104,1.5]]),.2,M.nerve,'vagus');
+ tube([[s*1.6,101,zs(101)-.2],[s*3.6,96,-2.5],[s*5.4,90,-1],[s*7,84,2],[s*8.6,79.8,3.6],[s*10,74,3.8],[s*11,68,3.6]],.3,M.nerve,'femoral_n');
+ tube(mir(s,[[10,74,3.8],[9.6,64,3.4],[8,54,1.2],[5.6,46,0],[5.6,30,.6],[5.7,10,1.6],[5.9,5,3]]),.15,M.nerve,'saphenous_n');
+ tube([[s*1.6,92,zs(92)-.5],[s*3.8,86,-5.2],[s*6.5,82.5,-6.2],[s*9.5,79,-5.4],[s*10.8,72,-3.6],[s*10.4,62,-3.2],[s*9.5,52,-3.2]],.55,M.nerve,'sciatic');
+ tube(mir(s,[[9.5,52,-3.2],[8.6,46,-3.6],[8,36,-3.4],[6.8,16,-2.6],[5.9,6.2,-1.6],[6,2.6,1.4],[6.6,1.4,5]]),.35,M.nerve,'tibial_n');
+ tube(mir(s,[[9.5,52,-3.2],[10.6,47,-2.4],[11.3,43.5,-1],[10.6,41.5,.8],[9.6,36,1.8],[8.6,22,2.2],[7.8,8,2.4],[7,3.6,4.4],[6.6,2.6,8]]),.28,M.nerve,'fibular_n');
+});
+
+/* ---------- Ішкі мүшелер ---------- */
+L='or';
+SIDES.forEach(s=>ell([s*6.6,123,.6],[s>0?5:5.6,9.6,6.2],M.lung,'lung'));
+tube([[0,148.5,2.6],[0,140,2.8],[0,131,2.2],[0,126.2,1.4]],.85,M.trach,'trachea');
+for(let y=128;y<147;y+=1.6){const t=new T.Mesh(TOR,M.trach);t.position.set(0,y,y>131?2.2+(y-131)*.04:1.6+(y-126)*.12);t.rotation.x=Math.PI/2;t.scale.set(.98,.98,.6);put(t,'trachea')}
+SIDES.forEach(s=>tube([[0,126.2,1.4],[s*2.4,124.6,1],[s*4.2,122.6,.6]],.55,M.trach,'bronchi'));
+ell([0,148.6,2.9],[1.7,2.1,1.6],M.trach,'larynx');
+SIDES.forEach(s=>ell([s*1.6,143.8,3.4],[.9,1.8,.8],M.thyroid,'thyroid'));ell([0,143,3.9],[1,.5,.4],M.thyroid,'thyroid');
+tube([[0,147,.8],[0,138,.4],[.3,128,-.6],[.8,118,zs(118)+3.1],[1.6,111,zs(111)+3.4],[3,106.5,1.4]],.6,M.esoph,'esophagus');
+ell([-3.8,105.2,2.6],[8,4.2,5.6],M.liver,'liver',[0,0,.22]);ell([2,106.2,4],[4,2.6,3.4],M.liver,'liver',[0,0,-.15]);
+ell([-4.2,102.4,6.6],[.9,1.6,.9],M.gall,'gallbladder',[.5,0,0]);
+ell([4.6,103.4,3],[4.4,3.6,2.9],M.stomach,'stomach',[0,0,-.55]);
+ell([8.4,103.8,-3],[1.8,3.4,1.8],M.spleen,'spleen',[0,0,-.3]);
+ell([1.2,100.4,.6],[4.8,.95,1.2],M.pancreas,'pancreas',[0,0,.12]);
+SIDES.forEach(s=>{const ky=s>0?98.6:97.6;ell([s*5.1,ky,-2.9],[1.9,3.6,1.6],M.kidney,'kidney',[0,0,s*.18]);ell([s*4.6,ky+3.6,-2.6],[1.2,.9,.7],M.adrenal,'adrenal');
+ tube(mir(s,[[3.7,ky-2.4,-2.4],[3.9,90,-1.6],[3.6,84,-.6],[2.4,80.6,1.6],[1,80.2,2.8]]),.25,M.ureter,'ureter')});
+ell([0,80.6,3.6],[2.8,2.3,2.4],M.bladder,'bladder');
+const SI=[];for(let t=0;t<=70;t++)SI.push([4.8*Math.sin(t*.85+.3*Math.sin(t*.37)),96.5-t*.135+.7*Math.sin(t*1.9),4.2+1.6*Math.sin(t*.47)+.6*Math.cos(t*1.3)]);
+tube(SI,.85,M.intest,'small_int',700);
+tube([[-6.5,86.5,3.5],[-7,92,3],[-7,96,3],[-6.5,99.5,3.5],[-3,98.5,6],[0,98,6.2],[3.5,98.6,5.6],[6.5,100,3.5],[7.2,96,2.5],[7,92,2.5],[6.5,86,2.5],[3,83.5,4],[.5,84,1],[0,80.5,-2.5]],1.35,M.colon,'colon',220);
+
+/* ---------- Бұлшықеттер ---------- */
+L='mu';
+SIDES.forEach(s=>{
+ ell([s*6.8,127.5,9.3],[6.6,4.6,1.5],M.mus,'pectoralis',[0,s*.25,s*.15]);
+ ell([s*17.8,131.5,.2],[3.6,5.6,3.8],M.mus,'deltoid',[0,0,s*.12]);
+ ell([s*19.9,115,3.2],[1.9,7.6,2],M.mus,'biceps',[0,0,s*.1]);
+ ell([s*19.4,116,-2.8],[2.3,8.4,2.3],M.mus,'triceps',[0,0,s*.1]);
+ ell([s*21.6,95,2.4],[2.2,8.2,1.9],M.mus,'flexors',[0,0,s*.1]);
+ ell([s*2.6,102.5,8.3],[2.4,12,1.1],M.mus,'rectus_abd');
+ ell([s*8.6,100,5.2],[3,7.5,2.6],M.mus,'oblique',[0,s*.6,0]);
+ ell([s*5.8,136,-6.8],[6.5,6,1.5],M.mus,'trapezius',[-.25,0,s*.35]);
+ ell([s*9.5,113,-6],[4,8,1.6],M.mus,'latissimus',[0,-s*.4,-s*.2]);
+ tube(mir(s,[[5.4,154.5,-1.2],[3.6,145,2.4],[1.6,135.6,7.2]]),.9,M.mus,'scm');
+ ell([s*8,87,-7.2],[5.6,6.4,3.2],M.mus,'gluteus');
+ ell([s*10.4,64,4.2],[4.4,13.5,3.8],M.mus,'quadriceps',[0,0,s*.1]);
+ tube(mir(s,[[9.8,90,4],[7.2,72,6],[5.8,58,4],[5.6,46,1]]),.7,M.mus,'sartorius');
+ ell([s*9.6,64,-3.8],[4.2,13,3.4],M.mus,'hamstrings',[0,0,s*.1]);
+ ell([s*6.6,70,1.2],[2.8,9,3.2],M.mus,'adductors',[0,0,-s*.2]);
+ ell([s*8.2,33,-3.4],[3.4,9.4,2.8],M.mus,'gastrocnemius');
+ ell([s*9,27,2.8],[1.4,10,1.4],M.mus,'tib_ant',[0,0,s*.05]);
+});
+{const g=new T.SphereGeometry(1,36,14,0,Math.PI*2,0,Math.PI/2);const d=new T.Mesh(g,M.diaph);d.position.set(0,109.5,0);d.scale.set(11,4.5,8.5);put(d,'diaphragm')}
+
+/* ---------- Тері ---------- */
+L='skin';
+const sk=(p,s)=>{const m=new T.Mesh(SPH,M.skin);m.position.copy(v(p));m.scale.set(s[0],s[1],s[2]);m.renderOrder=5;G.skin.add(m)};
+const skr=(a,b,r)=>{const A=v(a),B=v(b),d=B.clone().sub(A);const g=new T.CapsuleGeometry(r,d.length(),6,14);const m=new T.Mesh(g,M.skin);m.position.copy(A).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new V3(0,1,0),d.normalize());m.renderOrder=5;G.skin.add(m)};
+sk([0,160.5,.5],[9,11.5,10.6]);skr([0,150,0],[0,138,0],5.2);sk([0,121,.5],[15.5,17,10.5]);sk([0,96,1],[13,13,10]);
+SIDES.forEach(s=>{skr([s*17.5,131,0],[s*20.2,105,1],4.2);skr([s*20.2,105,1],[s*22.8,80,1.6],3.2);sk([s*22.8,71,2.2],[3.6,7.5,2]);skr([s*9.5,82,1],[s*8.4,46,1],7);skr([s*8.4,46,.5],[s*7.6,7,0],4.6);sk([s*7.4,2.5,5],[4,2.4,8])});
+
+/* ---------- Камера және басқару ---------- */
+const fitR=()=>{const a=cam.aspect||1;return Math.max(370,30/(Math.tan(15*Math.PI/180)*a))};
+const st={th:0,ph:Math.PI/2-.06,r:380,t:new V3(0,89,0)},goal={th:0,ph:Math.PI/2-.06,r:380,t:new V3(0,89,0)};
+const app=document.getElementById('app');
+const resize=()=>{const w=app.clientWidth,h=app.clientHeight;ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};
+const ro=new ResizeObserver(resize);ro.observe(app);resize();
+goal.r=st.r=fitR();
+function view(th,ph){goal.th=st.th+(((th-st.th)%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;goal.ph=ph||Math.PI/2-.06}
+const ptr=new Map();let down=null,moved=0,pinch=0;
+const clampPh=p=>Math.max(.12,Math.min(Math.PI-.12,p));
+function pan(dx,dy){const k=goal.r*.0011;const rx=new V3().setFromMatrixColumn(cam.matrixWorld,0),uy=new V3().setFromMatrixColumn(cam.matrixWorld,1);goal.t.addScaledVector(rx,-dx*k).addScaledVector(uy,dy*k)}
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});down={b:e.button,sh:e.shiftKey};moved=0;if(ptr.size===2){const [a,b]=[...ptr.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y)}});
+cv.addEventListener('pointermove',e=>{const p=ptr.get(e.pointerId);if(!p){hover(e);return}
+ const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+ if(ptr.size===1){if(down.b===2||down.sh)pan(dx,dy);else{goal.th-=dx*.008;goal.ph=clampPh(goal.ph-dy*.008)}}
+ else if(ptr.size===2){const [a,b]=[...ptr.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch){goal.r=Math.max(25,Math.min(600,goal.r*pinch/d))}pinch=d;pan(dx/2,dy/2)}});
+const up=e=>{const was=ptr.size;ptr.delete(e.pointerId);if(ptr.size<2)pinch=0;if(was===1&&moved<7&&e.type==='pointerup')pickAt(e.clientX,e.clientY)};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();goal.r=Math.max(25,Math.min(600,goal.r*Math.exp(e.deltaY*.0012)))},{passive:false});
+cv.addEventListener('pointerleave',()=>{tip.style.display='none'});
+cv.addEventListener('dblclick',()=>{if(sel)focus(sel.id,sel.mesh)});
+
+/* ---------- Таңдау ---------- */
+const ray=new T.Raycaster(),ndc=new T.Vector2(),tip=document.getElementById('tip'),marker=document.getElementById('marker');
+let boneOp=1,sel=null,hiddenN=0,mode='atlas',quiz=null;
+const hl=new Map();
+function hlOf(m){let h=hl.get(m);if(!h){h=m.clone();h.emissive=new T.Color(0x36d68a);h.emissiveIntensity=.55;h.color.lerp(new T.Color(0x36d68a),.35);if(h.transparent){h.opacity=Math.max(h.opacity,.85);h.depthWrite=true}hl.set(m,h)}return h}
+const vis=m=>m.visible&&m.parent.visible&&!(m.parent===G.sk&&boneOp<.3);
+function hitAt(x,y){const r=cv.getBoundingClientRect();ndc.set((x-r.left)/r.width*2-1,-(y-r.top)/r.height*2+1);ray.setFromCamera(ndc,cam);return ray.intersectObjects(pick.filter(vis),false)[0]}
+let hovT=0;
+function hover(e){const now=performance.now();if(now-hovT<40||e.pointerType==='touch')return;hovT=now;const h=hitAt(e.clientX,e.clientY);
+ if(h&&mode==='atlas'){const r=app.getBoundingClientRect();tip.textContent=nameOf(h.object);tip.style.display='block';tip.style.left=(e.clientX-r.left+14)+'px';tip.style.top=(e.clientY-r.top+14)+'px';cv.classList.add('hov')}else{tip.style.display='none';cv.classList.toggle('hov',!!h)}}
+function centerOf(m){return new T.Box3().setFromObject(m).getCenter(new V3())}
+function sideOf(m){const x=centerOf(m).x;return Math.abs(x)>1.3?(x<0?'Оң жақ':'Сол жақ'):''}
+function nameOf(m){const d=INFO[m.userData.id];let n=d?d[0]:m.userData.id;if(m.userData.x)n=m.userData.x+'-'+n.toLowerCase();return n}
+function pickAt(x,y){const h=hitAt(x,y);if(mode==='quiz'){return}if(h)select(h.object.userData.id,h.object,h.point);else select(null)}
+function paint(id,on){(byId[id]||[]).forEach(m=>{m.material=on?hlOf(m.userData.m):m.userData.m})}
+function select(id,mesh,point){if(sel)paint(sel.id,false);if(!id){sel=null;render();return}
+ mesh=mesh||byId[id].find(vis)||byId[id][0];sel={id,mesh,point:point?point.clone():centerOf(mesh)};paint(id,true);render()}
+function focus(id,mesh){const sx=Math.sign(centerOf(mesh).x);let ms=byId[id].filter(m=>m.visible);if(!ms.length)ms=byId[id];const side=ms.filter(m=>Math.sign(centerOf(m).x)===sx||Math.abs(centerOf(m).x)<1.3);if(side.length)ms=side;
+ const b=new T.Box3();ms.forEach(m=>b.expandByObject(m));const c=b.getCenter(new V3()),s=b.getSize(new V3()).length();goal.t.copy(c);goal.r=Math.max(32,Math.min(fitR(),s*2.6))}
+function layerOf(id){return byId[id][0].parent.userData.k}
+function ensureLayer(id){const k=layerOf(id);if(!G[k].visible){G[k].visible=true;drawLayers()}}
+
+/* ---------- Панельдер ---------- */
+const layEl=document.getElementById('layers');
+function drawLayers(){layEl.innerHTML=LAY.map(l=>`<button class="lay" id="lay-${l.k}" data-k="${l.k}" style="--c:${l.c}" aria-pressed="${G[l.k].visible}"><i></i><span>${l.n}</span><b></b></button>`).join('')}
+drawLayers();
+layEl.addEventListener('click',e=>{const b=e.target.closest('.lay');if(!b)return;const g=G[b.dataset.k];g.visible=!g.visible;b.setAttribute('aria-pressed',g.visible);if(sel&&!vis(sel.mesh))select(null)});
+const op=document.getElementById('op'),opv=document.getElementById('opv');
+op.addEventListener('input',()=>{boneOp=+op.value;opv.textContent=Math.round(boneOp*100)+'%';[M.bone,M.sock].forEach(m=>{m.opacity=boneOp;m.depthWrite=boneOp>.97;m.needsUpdate=true});hl.clear();if(sel)paint(sel.id,true)});
+const q=document.getElementById('q'),list=document.getElementById('list');
+const LC=k=>LAY.find(l=>l.k===k).c;
+/* ---------- Аймақтар ---------- */
+const ARM=['clavicle','scapula','plexus_br','deltoid'];
+const REG={
+ all:{n:'Толық дене',d:'Барлық жүйелер бірге: қаңқа, жүрек пен тамырлар, жүйке жүйесі, ішкі мүшелер. Кез келген құрылымды басыңыз — атауы мен түсініктемесі шығады.',f:['Ересек адамда 206 сүйек бар','600-ден астам қаңқа бұлшықеті','Ересек адамда шамамен 5 л қан','Мида шамамен 86 млрд нейрон'],t:[0,89,0],r:0,in:()=>true},
+ head:{n:'Бас және мойын',d:'Бас сүйек миды және сезім мүшелерін қорғайды. Мойын арқылы ми мен денені жалғайтын тамырлар, нервтер, тыныс жолы мен өңеш өтеді.',f:['Бас сүйекте 22 сүйек бар, оның жалғыз қозғалмалысы — төменгі жақ','Мойында 7 омыртқа бар: C1 — атлант, C2 — білікше','Ұйқы артериялары мен мойындырық веналары миды қанмен қамтамасыз етеді','Көмей, кеңірдек және қалқанша без мойынның алдыңғы бөлігінде'],t:[0,151,0],r:115,v:'head',in:(c)=>c.y>139},
+ trunk:{n:'Тұлға',d:'Кеуде торы, омыртқа жотасы, іш қабырғасы және жамбас. Ішінде өмірлік маңызды мүшелер орналасқан.',f:['Кеуде торын 12 жұп қабырға, 12 кеуде омыртқасы және төс сүйегі құрайды','Бел омыртқасы — 5, сегізкөз 5 омыртқаның бірігуінен түзіледі','Көкет кеуде мен іш қуысын бөледі','Қолқа мен төменгі қуыс вена омыртқа жотасының алдымен өтеді'],t:[0,108,0],r:190,v:'trunk',in:(c)=>c.y>76&&c.y<141&&Math.abs(c.x)<15.5},
+ organs:{n:'Ішкі мүшелер',d:'Кеуде қуысында жүрек пен өкпе, іш қуысында ас қорыту және зәр шығару мүшелері орналасқан.',f:['Жүрек екі өкпенің арасында, сәл сол жақта жатады','Бауыр оң қабырға астында орналасқан, ол — ең ірі ішкі мүше','Аш ішектің ұзындығы шамамен 6 м, тоқ ішектікі шамамен 1,5 м','Бүйректер іштің артқы қабырғасында, бел деңгейінде'],t:[0,108,2],r:170,v:'organs',lay:['or','ar'],op:.2,in:(c,id,k)=>(k==='or'||id==='heart'||id==='aorta'||id==='ivc'||id==='svc'||id==='pulmtrunk'||id==='diaphragm'||k==='sk')&&c.y>76&&c.y<152&&Math.abs(c.x)<13},
+ arm:{n:'Қол',d:'Иық белдеуі, иық, білек және қол басы. Қолдың нервтері иық өрімінен, артериялары бұғанаасты артериядан басталады.',f:['Әр қолда 32 сүйек бар: бұғана, жауырын, тоқпан жілік, кәрі жілік, шынтақ сүйегі және қол басының 27 сүйегі','Иық өрімінен ортаңғы, шынтақ және кәрі жілік нервтері шығады','Иық артериясы шынтақта кәрі жілік және шынтақ артерияларына бөлінеді','Шынтақтың ортаңғы венасынан қан алынады'],t:[-19,106,0],r:150,v:'arm',in:(c,id)=>(Math.abs(c.x)>13.5&&c.y>62&&c.y<140)||ARM.includes(id)&&Math.abs(c.x)>3},
+ leg:{n:'Аяқ',d:'Жамбас белдеуі, сан, сирақ және табан. Аяқ дене салмағын көтеріп, жүрісті қамтамасыз етеді.',f:['Әр аяқта 31 сүйек бар: жамбас сүйегі, ортан жілік, тізе тостағаны, үлкен және кіші жіліншік, табанның 26 сүйегі','Ортан жілік — денедегі ең ұзын сүйек','Шонданай нерві — ең жуан нерв, үлкен тері асты вена — ең ұзын вена','Сан артериясы шап қатпарынан сипалады'],t:[0,46,0],r:240,v:'leg',in:(c)=>c.y<84&&Math.abs(c.x)>2.5}};
+let region='all';window.__goRegion=k=>setRegion(k);
+const inReg=m=>region==='all'||REG[region].in(m.userData.c,m.userData.id,m.parent.userData.k);
+function applyVis(){pick.forEach(m=>m.visible=!m.userData.h&&inReg(m));G.skin.children.forEach(m=>m.visible=inReg(m));syncShow()}
+scene.updateMatrixWorld(true);pick.concat(G.skin.children).forEach(m=>{m.userData.c=centerOf(m)});
+const regEl=document.getElementById('regions');
+regEl.innerHTML=Object.keys(REG).map(k=>`<button id="reg-${k}" data-k="${k}" aria-pressed="${k===region}">${REG[k].n}</button>`).join('');
+regEl.addEventListener('click',e=>{const b=e.target.closest('button');if(b)setRegion(b.dataset.k)});
+function setRegion(k){region=k;const R=REG[k];regEl.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));
+ if(R.lay){R.lay.forEach(x=>G[x].visible=true);drawLayers()}
+ const o=R.op||1;op.value=o;op.dispatchEvent(new Event('input'));
+ applyVis();view(0);goal.t.set(R.t[0],R.t[1],R.t[2]);goal.r=R.r||fitR();drawList();
+ if(mode==='quiz')nextQ();else select(null)}
+function drawList(){const s=q.value.trim().toLowerCase();const ids=Object.keys(INFO).filter(id=>byId[id]&&byId[id].some(inReg)&&(!s||INFO[id][0].toLowerCase().includes(s)||INFO[id][1].toLowerCase().includes(s)));
+ list.innerHTML=ids.length?ids.map(id=>`<li><button data-id="${id}" style="--c:${LC(layerOf(id))}"><i></i><span>${INFO[id][0]}</span><small>${INFO[id][1]}</small></button></li>`).join(''):'<li class="hint">Ештеңе табылмады</li>'}
+q.addEventListener('input',drawList);drawList();
+function openId(id){if(mode==='quiz')setMode('atlas');ensureLayer(id);byId[id].forEach(m=>m.userData.h=false);if(!byId[id].some(inReg)){region='all';regEl.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k==='all'))}applyVis();
+ if(layerOf(id)!=='sk'&&boneOp>.5){op.value=.35;op.dispatchEvent(new Event('input'))}
+ const m=byId[id].find(x=>x.visible&&x.userData.c.x<=1.3)||byId[id].find(x=>x.visible)||byId[id][0];select(id,m);focus(id,m)}
+list.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;openId(b.dataset.id);if(innerWidth<=760){left.classList.remove('open');layBtn.setAttribute('aria-expanded','false')}});
+const KEYS=`<div class="keys"><span>Айналдыру</span><span>тышқанмен немесе саусақпен сүйреу</span><span>Үлкейту</span><span>дөңгелек немесе екі саусақ</span><span>Жылжыту</span><span>оң батырма немесе Shift + сүйреу</span><span>Жақындау</span><span>құрылымды екі рет басу</span></div>`;
+function regionCard(){const R=REG[region];
+ const bones=Object.keys(INFO).filter(id=>byId[id]&&layerOf(id)==='sk'&&byId[id].some(inReg));
+ right.innerHTML=`<span class="tag" style="--c:var(--acc)"><i></i>Аймақ</span><h2>${R.n}</h2><p>${R.d}</p>${R.v?`<figure class="rvid"><video src="media/${R.v}.mp4" poster="media/${R.v}.jpg" autoplay muted loop playsinline controls></video><figcaption>Anatomy Learning қосымшасындағы нақты 3D модель</figcaption></figure>`:''}<ul class="facts">${R.f.map(x=>`<li>${x}</li>`).join('')}</ul>${bones.length?`<h3>Бұл аймақтағы сүйектер</h3><div class="chips">${bones.map(id=>`<button class="chip" data-id="${id}">${INFO[id][0]}</button>`).join('')}</div>`:''}<p class="empty" style="margin-top:14px">Модельдегі кез келген құрылымды басыңыз — атауы мен түсініктемесі осында шығады.</p>${KEYS}`;
+ right.querySelectorAll('.chip').forEach(b=>b.onclick=()=>openId(b.dataset.id))}
+function render(){
+ if(mode==='quiz'){drawQuiz();return}
+ if(!sel){regionCard();return}
+ const d=INFO[sel.id]||[sel.id,'','',[]],k=layerOf(sel.id),l=LAY.find(x=>x.k===k),side=sideOf(sel.mesh);
+ right.innerHTML=`<button class="back" id="a-back">← ${REG[region].n}</button><span class="tag" style="--c:${l.c}"><i></i>${l.n}</span>${side?` <span class="tag">${side}</span>`:''}<h2>${nameOf(sel.mesh)}</h2><p class="lat">${d[1]}</p><p>${d[2]}</p><ul class="facts">${d[3].map(f=>`<li>${f}</li>`).join('')}</ul><div class="acts"><button class="btn pri" id="a-focus">Жақындату</button><button class="btn" id="a-hide">Жасыру</button><button class="btn" id="a-iso">Тек осыны көрсету</button></div>`;
+ document.getElementById('a-back').onclick=()=>select(null);
+ document.getElementById('a-focus').onclick=()=>focus(sel.id,sel.mesh);
+ document.getElementById('a-hide').onclick=()=>{byId[sel.id].forEach(m=>m.userData.h=true);select(null);applyVis()};
+ document.getElementById('a-iso').onclick=()=>{const id=sel.id;pick.forEach(m=>{if(m.userData.id!==id)m.userData.h=true});G.skin.visible=false;ensureLayer(id);drawLayers();applyVis();focus(id,sel.mesh)};
+}
+const showall=document.getElementById('showall');
+function syncShow(){showall.hidden=!pick.some(m=>m.userData.h)}
+showall.onclick=()=>{pick.forEach(m=>m.userData.h=false);applyVis()};
+document.getElementById('v-front').onclick=()=>view(0);
+document.getElementById('v-back').onclick=()=>view(Math.PI);
+document.getElementById('v-left').onclick=()=>view(Math.PI/2);
+document.getElementById('v-right').onclick=()=>view(-Math.PI/2);
+document.getElementById('v-reset').onclick=()=>setRegion('all');
+const left=document.getElementById('left'),layBtn=document.getElementById('layBtn');
+layBtn.onclick=()=>{const o=left.classList.toggle('open');layBtn.setAttribute('aria-expanded',o)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mode==='atlas')select(null)});
+
+/* ---------- Тест ---------- */
+const mA=document.getElementById('mAtlas'),mQ=document.getElementById('mQuiz');
+function setMode(m){mode=m;mA.setAttribute('aria-pressed',m==='atlas');mQ.setAttribute('aria-pressed',m==='quiz');tip.style.display='none';
+ if(m==='quiz'){quiz={n:0,ok:0};nextQ()}else{quiz=null;select(null)}}
+mA.onclick=()=>setMode('atlas');mQ.onclick=()=>setMode('quiz');
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function nextQ(){const ids=Object.keys(INFO).filter(id=>byId[id]&&byId[id].some(vis));
+ if(ids.length<4){quiz.cur=null;if(sel)paint(sel.id,false);sel=null;render();return}
+ const id=ids[Math.floor(Math.random()*ids.length)];const same=shuffle(ids.filter(x=>x!==id&&layerOf(x)===layerOf(id)));const other=shuffle(ids.filter(x=>x!==id&&layerOf(x)!==layerOf(id)));
+ quiz.cur=id;quiz.opts=shuffle([id].concat(same.concat(other).slice(0,3)));quiz.ans=null;
+ const m=byId[id].find(vis);if(sel)paint(sel.id,false);sel={id,mesh:m,point:centerOf(m)};paint(id,true);focus(id,m);render()}
+function drawQuiz(){
+ if(!quiz.cur){right.innerHTML=`<div class="empty"><b>Тест үшін қабаттар аз</b>Кемінде бір-екі қабатты қосыңыз.</div>`;return}
+ const a=quiz.ans;
+ right.innerHTML=`<p class="score">Дұрыс жауап: <b>${quiz.ok}</b> / ${quiz.n}</p><h2>Бұл қандай құрылым?</h2><p class="lat">Модельде жасылмен белгіленген.</p><div class="opts">${quiz.opts.map((o,i)=>`<button class="opt${a!=null&&o===quiz.cur?' ok':''}${a===o&&o!==quiz.cur?' bad':''}" id="qo-${i}" data-id="${o}" ${a!=null?'disabled':''}>${INFO[o][0]}</button>`).join('')}</div>${a!=null?`<p>${a===quiz.cur?'Дұрыс!':'Қате.'} <b>${INFO[quiz.cur][0]}</b> — <i>${INFO[quiz.cur][1]}</i>. ${INFO[quiz.cur][2]}</p><div class="acts"><button class="btn pri" id="qn">Келесі сұрақ</button><button class="btn" id="qx">Атласқа оралу</button></div>`:''}`;
+ right.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{quiz.ans=b.dataset.id;quiz.n++;if(quiz.ans===quiz.cur)quiz.ok++;drawQuiz()});
+ if(a!=null){document.getElementById('qn').onclick=nextQ;document.getElementById('qx').onclick=()=>setMode('atlas')}}
+
+/* ---------- Цикл ---------- */
+const P=new V3();
+function loop(){
+ st.th+=(goal.th-st.th)*.18;st.ph+=(goal.ph-st.ph)*.18;st.r+=(goal.r-st.r)*.18;st.t.lerp(goal.t,.18);
+ const sp=Math.sin(st.ph);cam.position.set(st.t.x+st.r*sp*Math.sin(st.th),st.t.y+st.r*Math.cos(st.ph),st.t.z+st.r*sp*Math.cos(st.th));cam.lookAt(st.t);
+ ren.render(scene,cam);
+ if(sel&&sel.point){P.copy(sel.point).project(cam);if(P.z<1){const w=app.clientWidth,h=app.clientHeight;marker.style.display='block';marker.style.left=((P.x+1)/2*w)+'px';marker.style.top=((1-P.y)/2*h)+'px';marker.querySelector('span').textContent=mode==='quiz'?'?':nameOf(sel.mesh)}else marker.style.display='none'}else marker.style.display='none';
+ requestAnimationFrame(loop)}
+render();loop();
+}
+}
+</script>
+</body>
+</html>
