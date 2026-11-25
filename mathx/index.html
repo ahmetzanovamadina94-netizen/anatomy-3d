@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mathX ҰБТ пробный</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* VOICE exam-real but calm: a mock ҰБТ a student can trust
+   IDEA the mathX brand on a squared notebook page with an ҰБТ answer sheet beside it
+   PICTURE the live test question on notebook paper; answer sheet of 10 bubbles and the 20-minute ring beside it
+   COLOUR logo navy #183a5e on warm off-white #f5f5f0 (from the logo), red margin accent, highlighter yellow; night = same inks on deep slate
+   TYPE Nunito 900 titles + Nunito text, Caveat for handwritten marks
+   LAYOUT laptop: title strip, mode tabs, paper (2/3) + sheet & timer (1/3); phone: title, paper, sheet */
+:root{color-scheme:light dark;--bg:light-dark(#f5f5f0,#0f141b);--ink:light-dark(#15263b,#e8edf5);--mute:light-dark(#56627a,#9aa7bd);--grid:light-dark(#e2e8f1,#1b2433);--blue:light-dark(#183a5e,#9cc0ea);--on:light-dark(#ffffff,#0f141b);--red:light-dark(#d93a3d,#ff7275);--hl:light-dark(#ffe066,#e9c43a);--ok:light-dark(#0f8a4b,#4ade80);--panel:light-dark(#ebece5,#161d28);--line:light-dark(#cfd5df,#2b3650);--paper:light-dark(#ffffff,#131a24)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+a{color:var(--blue)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.band{padding-block:clamp(28px,4vw,56px);padding-left:max(5vw,16px);padding-right:max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:10px max(5vw,16px)}
+.logo{display:block;line-height:0}
+.logo img{height:34px;width:auto}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .logo img{filter:brightness(0) invert(1) opacity(.92)}}
+:root[data-theme=dark] .logo img{filter:brightness(0) invert(1) opacity(.92)}
+.links{display:flex;gap:18px;flex-wrap:wrap;flex:1}
+.links a{color:var(--ink);text-decoration:none;font-weight:600}
+.lang{display:flex;border:1.5px solid var(--line);border-radius:999px;padding:3px}
+.lang button{border:0;background:none;padding:6px 14px;border-radius:999px;font-weight:800;min-height:36px}
+.lang button[aria-pressed=true]{background:var(--blue);color:var(--on)}
+.head{padding-bottom:18px}
+h1{font-weight:900;font-size:clamp(30px,4.4vw,48px);line-height:1.05;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance;max-width:20ch}
+.sub{color:var(--mute);font-size:17px;margin:0;max-width:62ch}
+.hand{font-family:Caveat,cursive;font-size:24px;color:var(--red);line-height:1.1}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.tabs button{border:1.5px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 18px;font-weight:800;min-height:44px}
+.tabs button[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--on)}
+.trainer{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;padding-top:0}
+.paper{position:relative;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;border:1px solid var(--line);border-radius:14px;padding:28px 28px 28px 84px;min-height:520px}
+.paper::before{content:"";position:absolute;top:0;bottom:0;left:60px;width:2px;background:var(--red);opacity:.7}
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tag{display:inline-block;background:var(--hl);color:#15263b;font-weight:800;padding:2px 10px;border-radius:6px;font-size:14px}
+.lv{font-weight:800;color:var(--blue);font-size:14px}
+.num{position:absolute;left:14px;top:26px;width:34px;text-align:center;font-family:Caveat,cursive;font-size:30px;color:var(--red)}
+.q{font-size:20px;font-weight:600;line-height:1.5;margin:0 0 18px;max-width:60ch}
+table.data{border-collapse:collapse;margin:0 0 18px;background:var(--paper);font-size:16px}
+table.data th,table.data td{border:1.5px solid var(--line);padding:6px 14px;text-align:left}
+table.data td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.opts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;min-height:52px;font-size:17px;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt b{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--blue);color:var(--blue);display:grid;place-items:center;font-weight:900;font-size:15px}
+.opt.sel{border-color:var(--blue)}.opt.sel b{background:var(--blue);color:var(--on)}
+.opt.ok{border-color:var(--ok)}.opt.ok b{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.bad{border-color:var(--red)}.opt.bad b{background:var(--red);border-color:var(--red);color:#fff}
+.opt:disabled{cursor:default}
+.note{margin-top:18px;border-left:4px solid var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--paper));padding:12px 16px;border-radius:0 10px 10px 0}
+.note.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 8%,var(--paper))}
+.note p{margin:4px 0 0}
+.hintbox{margin-top:14px;background:color-mix(in srgb,var(--hl) 35%,var(--paper));border-radius:10px;padding:10px 14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.btn{border:0;border-radius:10px;padding:11px 20px;font-weight:800;min-height:46px;background:var(--blue);color:var(--on)}
+.btn.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--line)}
+.btn.red{background:var(--red);color:#fff}
+.side{display:grid;gap:16px;align-content:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 12px;font-size:17px;font-weight:800}
+.timer{display:flex;align-items:center;gap:16px}
+.ring{width:96px;height:96px;flex:none}
+.ring circle{fill:none;stroke-width:9}
+.ring .bgc{stroke:var(--line)}
+.ring .fg{stroke:var(--blue);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .9s linear}
+.ring.late .fg{stroke:var(--red)}
+.ring text{font:900 20px Nunito,sans-serif;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.tnote{font-size:14px;color:var(--mute)}
+.sheet{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cell{display:grid;justify-items:center;gap:2px;border:1.5px solid var(--line);background:var(--paper);border-radius:10px;padding:6px 2px;min-height:58px}
+.cell small{font-size:13px;color:var(--mute);font-weight:700}
+.cell b{width:26px;height:26px;border-radius:50%;border:2px solid var(--blue);display:grid;place-items:center;font-size:13px;color:var(--blue)}
+.cell.f b{background:var(--blue);color:var(--on)}
+.cell.cur{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset}
+.cell.y b{background:var(--ok);border-color:var(--ok);color:#fff}.cell.n b{background:var(--red);border-color:var(--red);color:#fff}
+.prog{display:flex;gap:4px;margin-top:14px}
+.prog span{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.prog .y{background:var(--ok)}.prog .n{background:var(--red)}.prog .c{background:var(--blue)}
+.skills{display:grid;gap:4px}
+.sk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;background:none;border:0;padding:6px 8px;border-radius:8px;text-align:left;width:100%;min-height:44px}
+.sk:hover,.sk[aria-pressed=true]{background:color-mix(in srgb,var(--blue) 12%,transparent)}
+.sk span{font-weight:700;font-size:15px}
+.sk em{font-style:normal;font-size:14px;color:var(--mute);white-space:nowrap}
+.bar{grid-column:1/-1;height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+.small{font-size:14px;color:var(--mute);margin:8px 0 0}
+.score{font-size:clamp(52px,9vw,80px);font-weight:900;line-height:1;color:var(--blue)}
+.pass{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:8px;font-weight:800;color:#fff;background:var(--ok)}
+.pass.no{background:var(--red)}
+.lvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.lvls div{background:var(--panel);border-radius:10px;padding:10px 12px}
+.lvls b{display:block;font-size:24px}
+.rev{margin-top:22px;display:grid;gap:12px}
+.rv{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:10px;padding:12px 14px}
+.rv.bad{border-left-color:var(--red)}
+.rv p{margin:4px 0 0}
+.rules{margin:12px 0 0;padding-left:20px}
+.rules li{margin:4px 0}
+h2{font-size:clamp(26px,3.2vw,36px);font-weight:900;line-height:1.1;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
+.probs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px;margin-top:22px}
+.pb{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.pb h4{margin:0 0 4px;font-size:17px;display:flex;gap:10px;align-items:baseline}
+.pb h4 .hand{font-size:26px}
+.pb p{margin:0;color:var(--mute)}
+.pb .fix{color:var(--ink);margin-top:8px}
+.navy{background:#183a5e;color:#fff}
+.navy .sub,.navy .small{color:rgba(255,255,255,.8)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:18px;margin-top:22px}
+.fact b{display:block;font-size:clamp(34px,5vw,52px);font-weight:900;line-height:1}
+.fact span{display:block;margin-top:6px}
+.levels{display:flex;height:34px;border-radius:8px;overflow:hidden;margin-top:24px;font-weight:800;font-size:14px}
+.levels div{display:grid;place-items:center;color:#15263b}
+footer{border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+footer img{height:24px;width:auto}
+@media(max-width:860px){.trainer{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}}
+@media(max-width:600px){.paper{padding:22px 16px 22px 52px}.paper::before{left:38px}.num{left:2px;font-size:26px}.q{font-size:18px}.links{display:none}nav .wrap{justify-content:space-between}.lvls{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.ring .fg{transition:none}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#top" aria-label="mathX"><img src="logo.png" alt="mathX"></a>
+  <div class="links"><a href="#trainer" data-i="nTr"></a><a href="#problems" data-i="nPr"></a><a href="#format" data-i="nFo"></a></div>
+  <div class="lang" role="group" aria-label="Тіл / Язык"><button id="lkz" type="button">ҚАЗ</button><button id="lru" type="button">РУС</button></div>
+</div></nav>
+
+<header class="band head" id="top"><div class="wrap">
+  <h1 data-i="title"></h1>
+  <p class="sub" data-i="lead"></p>
+  <div class="tabs" role="group"><button type="button" id="mt" data-i="mTest"></button><button type="button" id="mp" data-i="mPrac"></button></div>
+</div></header>
+
+<section class="band trainer wrap" id="trainer" aria-live="polite">
+  <div class="paper" id="paper"></div>
+  <aside class="side">
+    <div class="card">
+      <div class="timer">
+        <svg class="ring" id="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bgc" cx="50" cy="50" r="42"/><circle class="fg" id="arc" cx="50" cy="50" r="42"/><text x="50" y="50" id="tt">20:00</text></svg>
+        <div><h3 id="tH"></h3><div class="tnote" id="tnote"></div></div>
+      </div>
+      <div class="prog" id="prog"></div>
+    </div>
+    <div class="card"><h3 id="sideH"></h3><div id="sideB"></div><p class="small" id="sideN"></p></div>
+  </aside>
+</section>
+
+<section class="band" id="problems" style="background:var(--panel)"><div class="wrap">
+  <h2 data-i="pH"></h2>
+  <p class="sub" data-i="pLead"></p>
+  <div class="probs" id="probs"></div>
+</div></section>
+
+<section class="band navy" id="format"><div class="wrap">
+  <h2 data-i="fH"></h2>
+  <p class="sub" data-i="fLead"></p>
+  <div class="facts" id="facts"></div>
+  <div class="levels"><div style="width:50%;background:#ffe066">A · 50%</div><div style="width:30%;background:#ffc94d">B · 30%</div><div style="width:20%;background:#ff8f8f">C · 20%</div></div>
+  <p class="small" data-i="fSrc"></p>
+  <div class="row"><a class="btn" style="background:#fff;color:#183a5e;text-decoration:none;display:inline-grid;place-items:center" href="#trainer" data-i="cta"></a></div>
+</div></section>
+
+<footer class="band"><div class="wrap"><img src="logo.png" alt="mathX"><span data-i="foot2"></span></div></footer>
+
+<script>
+{
+const SK={A:{kz:'Шартты оқу',ru:'Чтение условия',hk:'Шартты екі рет оқы. Сандардың және «тегін», «кешігеді» сияқты кілт сөздердің астын сыз.',hr:'Прочитай условие дважды. Подчеркни числа и ключевые слова вроде «бесплатно», «опоздает».'},
+B:{kz:'Модельдеу',ru:'Перевод в математику',hk:'Белгісізді x деп белгіле де, әр сөйлемді теңдеудің бір бөлігіне айналдыр.',hr:'Обозначь неизвестное за x и переведи каждую фразу в часть уравнения.'},
+C:{kz:'Кесте мен деректер',ru:'Таблицы и данные',hk:'Алдымен кестенің тақырыбы мен бірлігін оқы, содан кейін ғана есепте.',hr:'Сначала прочитай заголовок и единицы таблицы, потом считай.'},
+D:{kz:'Пайыз және қаржы',ru:'Проценты и финансы',hk:'Пайыздар қосылмайды: әр жеңілдік немесе өсім жаңа сомадан есептеледі.',hr:'Проценты не складываются: каждая скидка или начисление считается от новой суммы.'},
+E:{kz:'Логика',ru:'Логика и последовательности',hk:'Көрші сандардың айырмасын немесе бәрінің ретін бір жолға жазып шық.',hr:'Выпиши разности соседних чисел или выстрой всех в один ряд.'},
+F:{kz:'Бөлшек және бірлік',ru:'Дроби, пропорции, единицы',hk:'Бірліктерді бірдей ет (см → м → км) және жауапты өмірмен тексер.',hr:'Приведи единицы к одной (см → м → км) и проверь ответ здравым смыслом.'}};
+const TASKS=[
+{s:'A',a:1,kz:{q:'Дүкенде 3 дәптер сатып алсаң, 4-ші дәптер тегін. Бір дәптер 250 ₸. 8 дәптер үшін неше теңге төлейсің?',o:['2 000 ₸','1 500 ₸','1 750 ₸','1 250 ₸'],e:'Әр 4 дәптердің 3-іне ғана төлейсің. 8 дәптер = 2 топ, яғни 6 × 250 = 1 500 ₸. 2 000 ₸ — «тегін» сөзін байқамағандағы қате.'},ru:{q:'В магазине при покупке 3 тетрадей 4-я бесплатно. Тетрадь стоит 250 ₸. Сколько нужно заплатить за 8 тетрадей?',o:['2 000 ₸','1 500 ₸','1 750 ₸','1 250 ₸'],e:'Из каждых 4 тетрадей платишь за 3. 8 тетрадей = 2 группы, то есть 6 × 250 = 1 500 ₸. 2 000 ₸ — ошибка, если не заметить слово «бесплатно».'}},
+{s:'A',a:2,kz:{q:'Автобус 07:40-та шығады, жолда 1 сағат 35 минут жүреді. Сабақ 09:00-де басталады. Автобуспен барған оқушы сабаққа неше минут кешігеді?',o:['5 минут','25 минут','15 минут','Кешікпейді'],e:'07:40 + 1 сағ 35 мин = 09:15. Сабақ 09:00-де басталады, демек оқушы 15 минут кешігеді.'},ru:{q:'Автобус отправляется в 07:40 и едет 1 час 35 минут. Урок начинается в 09:00. На сколько минут опоздает ученик, если поедет на этом автобусе?',o:['5 минут','25 минут','15 минут','Не опоздает'],e:'07:40 + 1 ч 35 мин = 09:15. Урок в 09:00, значит, ученик опоздает на 15 минут.'}},
+{s:'B',a:3,kz:{q:'Айгүл мен Дана бірге 54 кітап оқыды. Айгүл Данадан 2 есе көп оқыды. Дана неше кітап оқыды?',o:['36','24','27','18'],e:'Дана — x, Айгүл — 2x. x + 2x = 54, 3x = 54, x = 18. 36 — Айгүлдің кітаптары.'},ru:{q:'Айгуль и Дана вместе прочитали 54 книги. Айгуль прочитала в 2 раза больше, чем Дана. Сколько книг прочитала Дана?',o:['36','24','27','18'],e:'Дана — x, Айгуль — 2x. x + 2x = 54, 3x = 54, x = 18. 36 — это книги Айгуль.'}},
+{s:'B',a:1,kz:{q:'Такси бағасы: отырғызу 600 ₸ және әр километр 150 ₸. Жол 3 300 ₸ болды. Такси неше километр жүрді?',o:['22 км','18 км','20 км','16 км'],e:'600 + 150x = 3 300 → 150x = 2 700 → x = 18 км. 22 км — отырғызу ақысын ұмытқандағы жауап.'},ru:{q:'Такси: посадка 600 ₸ и 150 ₸ за каждый километр. Поездка стоила 3 300 ₸. Сколько километров проехало такси?',o:['22 км','18 км','20 км','16 км'],e:'600 + 150x = 3 300 → 150x = 2 700 → x = 18 км. 22 км получается, если забыть про посадку.'}},
+{s:'C',a:2,t:1,kz:{q:'Кестеде дүкеннің бір аптадағы сатылымы берілген. Күніне орта есеппен неше тауар сатылды?',o:['150','175','140','130'],e:'120 + 150 + 90 + 180 + 160 = 700. Бес күн: 700 : 5 = 140.'},ru:{q:'В таблице продажи магазина за неделю. Сколько товаров в среднем продавали за день?',o:['150','175','140','130'],e:'120 + 150 + 90 + 180 + 160 = 700. Пять дней: 700 : 5 = 140.'}},
+{s:'C',a:0,t:1,kz:{q:'Кесте бойынша: қай күні сатылым алдыңғы күнмен салыстырғанда ең көп өсті?',o:['Бейсенбі','Сейсенбі','Жұма','Дүйсенбі'],e:'Өзгерістер: сейсенбі +30, сәрсенбі −60, бейсенбі +90, жұма −20. Ең көп өсім — бейсенбі. Сұрақ өсім туралы, ең көп сатылым туралы емес.'},ru:{q:'По таблице: в какой день продажи выросли сильнее всего по сравнению с предыдущим днём?',o:['Четверг','Вторник','Пятница','Понедельник'],e:'Изменения: вторник +30, среда −60, четверг +90, пятница −20. Самый большой рост — четверг. Спрашивают про рост, а не про максимум продаж.'}},
+{s:'D',a:3,kz:{q:'Куртка 20 000 ₸ тұрады. Алдымен 20% жеңілдік жасалды, сосын жаңа бағадан тағы 10% жеңілдік. Куртканың соңғы бағасы қандай?',o:['14 000 ₸','16 000 ₸','15 000 ₸','14 400 ₸'],e:'20 000 × 0,8 = 16 000; 16 000 × 0,9 = 14 400 ₸. 20% пен 10%-ды қосып, 30% деп алуға болмайды — бұл 14 000 ₸ деген қате береді.'},ru:{q:'Куртка стоит 20 000 ₸. Сначала скидка 20%, затем ещё 10% от новой цены. Какая итоговая цена?',o:['14 000 ₸','16 000 ₸','15 000 ₸','14 400 ₸'],e:'20 000 × 0,8 = 16 000; 16 000 × 0,9 = 14 400 ₸. Складывать скидки в 30% нельзя — так получаются ошибочные 14 000 ₸.'}},
+{s:'D',a:1,kz:{q:'Банкке 100 000 ₸ салынды, жылдық 10%, пайыз жыл сайын салымға қосылады. 2 жылдан кейін шотта қанша болады?',o:['120 000 ₸','121 000 ₸','110 000 ₸','122 000 ₸'],e:'1-жыл: 100 000 × 1,1 = 110 000. 2-жыл: 110 000 × 1,1 = 121 000 ₸. Екінші жылы пайыз жаңа сомадан есептеледі.'},ru:{q:'В банк положили 100 000 ₸ под 10% годовых, проценты каждый год прибавляются к вкладу. Сколько будет на счёте через 2 года?',o:['120 000 ₸','121 000 ₸','110 000 ₸','122 000 ₸'],e:'1-й год: 100 000 × 1,1 = 110 000. 2-й год: 110 000 × 1,1 = 121 000 ₸. Во второй год процент считается от новой суммы.'}},
+{s:'E',a:1,kz:{q:'Тізбектің келесі мүшесін тап: 2, 6, 12, 20, 30, …',o:['40','42','36','44'],e:'Айырмалар: 4, 6, 8, 10 — келесісі 12. 30 + 12 = 42. Басқаша: n·(n+1), 6·7 = 42.'},ru:{q:'Найди следующий член последовательности: 2, 6, 12, 20, 30, …',o:['40','42','36','44'],e:'Разности: 4, 6, 8, 10 — следующая 12. 30 + 12 = 42. Иначе: n·(n+1), 6·7 = 42.'}},
+{s:'E',a:2,kz:{q:'Асқар Беріктен ұзын. Берік Сәкеннен ұзын. Дәурен Асқардан ұзын. Кім ең аласа?',o:['Берік','Асқар','Сәкен','Дәурен'],e:'Бір қатарға қойсақ: Дәурен > Асқар > Берік > Сәкен. Ең аласа — Сәкен.'},ru:{q:'Аскар выше Берика. Берик выше Сакена. Даурен выше Аскара. Кто самый низкий?',o:['Берик','Аскар','Сакен','Даурен'],e:'Выстроим в ряд: Даурен > Аскар > Берик > Сакен. Самый низкий — Сакен.'}},
+{s:'F',a:2,kz:{q:'Картаның масштабы 1 : 50 000. Картадағы екі ауылдың арасы 4 см. Шын мәнінде олардың арасы қанша?',o:['20 км','200 м','2 км','0,2 км'],e:'4 см × 50 000 = 200 000 см = 2 000 м = 2 км.'},ru:{q:'Масштаб карты 1 : 50 000. На карте между двумя сёлами 4 см. Каково реальное расстояние?',o:['20 км','200 м','2 км','0,2 км'],e:'4 см × 50 000 = 200 000 см = 2 000 м = 2 км.'}},
+{s:'F',a:3,kz:{q:'3 банка бояу 12 м² қабырғаға жетеді. 30 м² қабырғаны бояу үшін кемінде неше банка сатып алу керек?',o:['7,5 банка','7 банка','10 банка','8 банка'],e:'1 банка: 12 : 3 = 4 м². 30 : 4 = 7,5. Жарты банка сатылмайды, 7 банка жетпейді — сондықтан 8 банка.'},ru:{q:'3 банок краски хватает на 12 м² стены. Какое наименьшее число банок нужно купить, чтобы покрасить 30 м²?',o:['7,5 банки','7 банок','10 банок','8 банок'],e:'1 банка: 12 : 3 = 4 м². 30 : 4 = 7,5. Полбанки не продают, 7 не хватит — значит, 8 банок.'}},
+{s:'C',a:1,t:1,kz:{q:'Кестеде дүкеннің бір аптадағы сатылымы берілген. Жұмадағы сатылым дүйсенбімен салыстырғанда неше пайызға артық?',o:['40%','≈ 33%','25%','≈ 43%'],e:'Айырма: 160 − 120 = 40. Пайыз бастапқы шамадан есептеледі: 40 : 120 ≈ 0,33, яғни ≈ 33%. 25% — 40-ты 160-қа бөлгендегі қате.'},ru:{q:'В таблице продажи магазина за неделю. На сколько процентов продажи в пятницу больше, чем в понедельник?',o:['40%','≈ 33%','25%','≈ 43%'],e:'Разница: 160 − 120 = 40. Процент считают от исходного значения: 40 : 120 ≈ 0,33, то есть ≈ 33%. 25% — ошибка, если делить 40 на 160.'}},
+{s:'B',a:2,kz:{q:'Бірінші құбыр бассейнді 6 сағатта, екіншісі 3 сағатта толтырады. Екі құбыр бірге ашылса, бассейн неше сағатта толады?',o:['4,5 сағат','9 сағат','2 сағат','3 сағат'],e:'Бір сағатта: 1/6 + 1/3 = 1/6 + 2/6 = 1/2 бассейн. Демек, бассейн 2 сағатта толады. 4,5 — орта мәнді алу қатесі, 9 — уақыттарды қосу қатесі.'},ru:{q:'Первая труба наполняет бассейн за 6 часов, вторая — за 3 часа. За сколько часов наполнят бассейн обе трубы вместе?',o:['4,5 часа','9 часов','2 часа','3 часа'],e:'За час: 1/6 + 1/3 = 1/6 + 2/6 = 1/2 бассейна. Значит, бассейн наполнится за 2 часа. 4,5 — ошибка «среднего», 9 — ошибка сложения времени.'}}];
+const TEST=[0,1,2,4,9,3,6,10,12,13];
+const LV=i=>i<5?'A':i<8?'B':'C';
+const TLIM=20*60;
+const SALES=[['Дүйсенбі','Понедельник',120],['Сейсенбі','Вторник',150],['Сәрсенбі','Среда',90],['Бейсенбі','Четверг',180],['Жұма','Пятница',160]];
+const TX={
+kz:{nTr:'Пробный тест',nPr:'Қиындықтар',nFo:'ҰБТ форматы',title:'Математикалық сауаттылық: ҰБТ пробный тест',lead:'10 сұрақ, 20 минут, нақты ҰБТ форматы: А, B, C деңгейлері. Соңында — балл, қателер және әр есептің шешімі.',mTest:'Пробный тест · 10 сұрақ',mPrac:'Жаттығу',tTest:'20 минут',tPrac:'2 минут',tOk:'Бір тапсырмаға ҰБТ нормасы',tRun:'Тест жүріп жатыр',tReady:'Бастағанда уақыт жүреді',tOver:'Тест аяқталды',tLate:'Уақыт өтті — бірақ шешуді жалғастыр',tDone:'Жауап {s} сек ішінде берілді',sheetH:'Жауап парағы',sheetN:'Нөмірді бассаң, сол сұраққа өтесің.',sH:'Дағдылар картасы',sNote:'Дағдыны бассаң, тек соның тапсырмалары қалады.',all:'Барлық тапсырмалар',hint:'Кеңес',next:'Келесі',prev:'Алдыңғы',fin:'Нәтиже',finish:'Тестті аяқтау',right:'Дұрыс!',wrong:'Қате.',restart:'Қайта бастау',resH:'Нәтиже',ofN:'{c} / {n} дұрыс',ent:'ҰБТ шкаласы бойынша шамамен {p} балл (10-нан, шекті балл — 3).',weak:'Ең әлсіз дағды: {s}',train:'Осы дағдыны жаттықтыру',avg:'Орташа уақыт: {t} сек',day:'Күн',sold:'Сатылды, дана',stH:'Пробный тест',stL:'Нақты ҰБТ-дағыдай: жауаптар соңында тексеріледі.',r1:'10 сұрақ, әрқайсысы 1 балл',r2:'20 минут — бір сұраққа шамамен 2 минут',r3:'Деңгейлер: А — 5, B — 3, C — 2 сұрақ',r4:'Сұрақтарға қайта оралып, жауапты өзгертуге болады',start:'Тестті бастау',lvl:'{l} деңгейі',left:'{n} сұраққа жауап берілмеді. Бәрібір аяқтайсың ба?',yes:'Иә, аяқтау',no:'Жалғастыру',score:'{c} / 10',pass:'Шекті балл өтті',fail:'Шекті балл өтпеді',time:'Жұмсалған уақыт: {m} мин {s} сек',revH:'Шешімдер',your:'Сенің жауабың',none:'жауап жоқ',corr:'Дұрыс жауап',again:'Тестті қайта тапсыру',toPrac:'Әлсіз дағдыны жаттықтыру',pH:'Оқушылардың 8 негізгі қиындығы',pLead:'Тест пен жаттығу осы қиындықтардың әрқайсысына арналған.',fH:'ҰБТ-дағы математикалық сауаттылық',fLead:'Міндетті пән: аз тапсырма, бірақ әр балл маңызды.',fSrc:'Дереккөз: Ұлттық тестілеу орталығының спецификациясы; PISA 2025 (ЭЫДҰ).',cta:'Пробный тестті бастау',foot2:'Тапсырмалар — үлгі, ресми ҰБТ тапсырмалары емес.',sm:'Сұрақ'},
+ru:{nTr:'Пробный тест',nPr:'Трудности',nFo:'Формат ЕНТ',title:'Математическая грамотность: пробный тест ЕНТ',lead:'10 вопросов, 20 минут, настоящий формат ЕНТ: уровни A, B, C. В конце — балл, ошибки и решение каждой задачи.',mTest:'Пробный тест · 10 вопросов',mPrac:'Тренировка',tTest:'20 минут',tPrac:'2 минуты',tOk:'Норма ЕНТ на одно задание',tRun:'Тест идёт',tReady:'Время пойдёт после старта',tOver:'Тест завершён',tLate:'Время вышло — но дорешай задачу',tDone:'Ответ дан за {s} сек',sheetH:'Бланк ответов',sheetN:'Нажми на номер, чтобы перейти к вопросу.',sH:'Карта навыков',sNote:'Нажми на навык, чтобы решать только его задания.',all:'Все задания',hint:'Подсказка',next:'Дальше',prev:'Назад',fin:'Результат',finish:'Завершить тест',right:'Верно!',wrong:'Неверно.',restart:'Начать заново',resH:'Результат',ofN:'{c} из {n} верно',ent:'По шкале ЕНТ это примерно {p} балл(ов) из 10 (порог — 3).',weak:'Самый слабый навык: {s}',train:'Тренировать этот навык',avg:'Среднее время: {t} сек',day:'День',sold:'Продано, шт.',stH:'Пробный тест',stL:'Как на настоящем ЕНТ: ответы проверяются в конце.',r1:'10 вопросов, каждый — 1 балл',r2:'20 минут — около 2 минут на вопрос',r3:'Уровни: A — 5, B — 3, C — 2 вопроса',r4:'Можно возвращаться к вопросам и менять ответ',start:'Начать тест',lvl:'Уровень {l}',left:'Без ответа: {n}. Всё равно завершить?',yes:'Да, завершить',no:'Продолжить',score:'{c} / 10',pass:'Порог пройден',fail:'Порог не пройден',time:'Затрачено: {m} мин {s} сек',revH:'Решения',your:'Твой ответ',none:'нет ответа',corr:'Верный ответ',again:'Пройти тест заново',toPrac:'Тренировать слабый навык',pH:'8 главных трудностей учеников',pLead:'Тест и тренировка сделаны под каждую из них.',fH:'Математическая грамотность на ЕНТ',fLead:'Обязательный предмет: заданий мало, но каждый балл важен.',fSrc:'Источники: спецификация Национального центра тестирования; PISA 2025 (ОЭСР).',cta:'Начать пробный тест',foot2:'Задания — примеры, не официальные задания ЕНТ.',sm:'Вопрос'}};
+const PROBS=[
+['Шартты түсінбейді','Ұзын мәтінде басты ақпарат жоғалады.','Әр тапсырмада «Кеңес»: нені сызу керек.','Не понимают условие','В длинном тексте теряется главное.','В каждом задании «Подсказка»: что подчеркнуть.'],
+['Математикаға аудара алмайды','Теңдеуді шешеді, бірақ құра алмайды.','Модельдеу есептері, x арқылы түсіндірме.','Не переводят в математику','Решают уравнение, но не могут его составить.','Задачи на моделирование, разбор через x.'],
+['Кесте мен диаграмма','Жолды, бірлікті, масштабты шатастырады.','Нақты кесте бойынша тапсырмалар.','Таблицы и диаграммы','Путают строки, единицы, масштаб.','Задания по настоящей таблице.'],
+['Пайыз және қаржы','Жеңілдіктерді қосып жібереді.','Жеңілдік, депозит, «пайыздан пайыз».','Проценты и финансы','Складывают скидки между собой.','Скидки, вклад, «процент от процента».'],
+['Логика','Дайын формула іздейді, ойламайды.','Тізбектер мен реттеу есептері.','Логика','Ищут готовую формулу вместо рассуждения.','Последовательности и упорядочивание.'],
+['Уақыт жетпейді','Бір тапсырмаға шамамен 2 минут.','Пробный тестте 20 минуттық таймер.','Не хватает времени','На задание около 2 минут.','Таймер 20 минут в пробном тесте.'],
+['Ескі олқылықтар','Бөлшек, пропорция, бірлік 5–7 сыныптан.','Масштаб пен пропорция есептері.','Старые пробелы','Дроби, пропорции, единицы с 5–7 класса.','Задачи на масштаб и пропорции.'],
+['Тіл','Қазақша сапалы материал аз.','Барлық тапсырма қазақша және орысша.','Язык','Качественных материалов на казахском мало.','Все задания на казахском и русском.']];
+const FACTS={kz:[['10','тапсырма, ең көбі 10 балл'],['3','балл — шекті балл'],['2 мин','бір тапсырмаға'],['44%','оқушы ғана PISA-да базалық деңгейге жетті (ЭЫДҰ — 65%)']],ru:[['10','заданий, максимум 10 баллов'],['3','балла — пороговый балл'],['2 мин','на одно задание'],['44%','учеников достигли базового уровня PISA (ОЭСР — 65%)']]};
+const KEY='mathx-v2';
+let S={lang:'kz',mode:'test',T:{st:0,t0:0,t1:0,pos:0,ans:{}},f:'',pos:0,ans:{},hint:false,ask:false};
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d)S=Object.assign(S,d)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const L=()=>TX[S.lang];
+const fmt=(s,o)=>s.replace(/\{(\w)\}/g,(m,k)=>o[k]);
+const list=()=>TASKS.map((t,i)=>i).filter(i=>!S.f||TASKS[i].s===S.f);
+let t0=Date.now(),tick=null;
+const C=2*Math.PI*42;$('arc').style.strokeDasharray=C;
+function stat(k){const ids=TASKS.map((t,i)=>i).filter(i=>TASKS[i].s===k);const done=ids.filter(i=>S.ans[i]);return{n:ids.length,d:done.length,c:done.filter(i=>S.ans[i].ok).length}}
+function table(){return '<table class="data"><thead><tr><th>'+L().day+'</th><th>'+L().sold+'</th></tr></thead><tbody>'+SALES.map(r=>'<tr><td>'+(S.lang==='kz'?r[0]:r[1])+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody></table>'}
+function opts(x,cls,dis){return '<ul class="opts">'+x.o.map((o,k)=>'<li><button type="button" class="opt'+cls(k)+'" data-k="'+k+'"'+(dis?' disabled':'')+'><b>'+'ABCD'[k]+'</b>'+o+'</button></li>').join('')+'</ul>'}
+/* ---- test mode ---- */
+function tUsed(){return Math.min(TLIM,Math.floor(((S.T.st===2?S.T.t1:Date.now())-S.T.t0)/1000))}
+function tCard(){
+  const P=$('paper'),T=S.T;
+  if(T.st===0){P.innerHTML='<div class="num">✎</div><h2>'+L().stH+'</h2><p class="sub">'+L().stL+'</p><ul class="rules">'+['r1','r2','r3','r4'].map(k=>'<li>'+L()[k]+'</li>').join('')+'</ul><div class="row"><button type="button" class="btn" id="go">'+L().start+' →</button></div>';return}
+  if(T.st===2){tRes();return}
+  const i=TEST[T.pos],Q=TASKS[i],x=Q[S.lang],a=T.ans[T.pos];
+  let h='<div class="num">'+(T.pos+1)+'</div><div class="meta"><span class="lv">'+fmt(L().lvl,{l:LV(T.pos)})+'</span><span class="small" style="margin:0">'+L().sm+' '+(T.pos+1)+' / 10</span></div><p class="q">'+x.q+'</p>'+(Q.t?table():'');
+  h+=opts(x,k=>k===a?' sel':'',false);
+  if(S.ask){const n=10-Object.keys(T.ans).length;h+='<div class="note bad"><strong>'+fmt(L().left,{n})+'</strong><div class="row"><button type="button" class="btn red" id="fy">'+L().yes+'</button><button type="button" class="btn ghost" id="fn">'+L().no+'</button></div></div>'}
+  h+='<div class="row">'+(T.pos>0?'<button type="button" class="btn ghost" id="tp">← '+L().prev+'</button>':'')+(T.pos<9?'<button type="button" class="btn" id="tn">'+L().next+' →</button>':'')+'<button type="button" class="btn ghost" id="tf" style="margin-left:auto">'+L().finish+'</button></div>';
+  P.innerHTML=h;
+}
+function tRes(){
+  const T=S.T,c=TEST.filter((i,k)=>T.ans[k]===TASKS[i].a).length,u=tUsed();
+  const lv=l=>{const ks=TEST.map((i,k)=>k).filter(k=>LV(k)===l);return ks.filter(k=>T.ans[k]===TASKS[TEST[k]].a).length+' / '+ks.length};
+  const miss={};TEST.forEach((i,k)=>{if(T.ans[k]!==TASKS[i].a)miss[TASKS[i].s]=(miss[TASKS[i].s]||0)+1});
+  const weak=Object.keys(miss).sort((a,b)=>miss[b]-miss[a])[0];
+  let h='<div class="num">✓</div><h2>'+L().resH+'</h2><div class="score">'+fmt(L().score,{c})+'</div><span class="pass'+(c>=3?'':' no')+'">'+(c>=3?L().pass:L().fail)+'</span><p class="small">'+fmt(L().time,{m:Math.floor(u/60),s:u%60})+'</p>';
+  h+='<div class="lvls">'+['A','B','C'].map(l=>'<div><span class="lv">'+fmt(L().lvl,{l})+'</span><b>'+lv(l)+'</b></div>').join('')+'</div>';
+  h+='<div class="row"><button type="button" class="btn" id="ta">'+L().again+'</button>'+(weak?'<button type="button" class="btn ghost" id="tw" data-s="'+weak+'">'+L().toPrac+': '+SK[weak][S.lang]+'</button>':'')+'</div>';
+  h+='<h3 style="margin:26px 0 0">'+L().revH+'</h3><div class="rev">'+TEST.map((i,k)=>{const Q=TASKS[i],x=Q[S.lang],a=T.ans[k],ok=a===Q.a;return '<div class="rv'+(ok?'':' bad')+'"><strong>'+(k+1)+'. '+x.q+'</strong><p>'+L().your+': '+(a===undefined?L().none:'ABCD'[a]+') '+x.o[a])+(ok?' ✓':'')+'</p>'+(ok?'':'<p>'+L().corr+': '+'ABCD'[Q.a]+') '+x.o[Q.a]+'</p>')+'<p class="small">'+x.e+'</p></div>'}).join('')+'</div>';
+  $('paper').innerHTML=h;
+}
+function tSide(){
+  const T=S.T,done=T.st===2;
+  $('tH').textContent=L().tTest;
+  $('prog').innerHTML='';
+  $('sideH').textContent=L().sheetH;$('sideN').textContent=L().sheetN;
+  $('sideB').innerHTML='<div class="sheet">'+TEST.map((i,k)=>{const a=T.ans[k];let c=a!==undefined?' f':'';if(done)c=a===TASKS[i].a?' y':' n';if(!done&&T.st===1&&k===T.pos)c+=' cur';return '<button type="button" class="cell'+c+'" data-q="'+k+'"'+(T.st===0?' disabled':'')+'><small>'+(k+1)+'</small><b>'+(a!==undefined?'ABCD'[a]:'')+'</b></button>'}).join('')+'</div>';
+}
+function tTimer(){
+  clearInterval(tick);const T=S.T;
+  const draw=()=>{const u=T.st===0?0:tUsed(),left=TLIM-u;
+    $('tt').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+    $('arc').style.strokeDashoffset=C*(1-left/TLIM);$('ring').classList.toggle('late',T.st===1&&left<=120);
+    $('tnote').textContent=T.st===0?L().tReady:T.st===2?L().tOver:L().tRun;
+    if(T.st===1&&left<=0){finish()}};
+  draw();if(T.st===1)tick=setInterval(draw,1000);
+}
+function finish(){S.T.st=2;S.T.t1=Math.min(Date.now(),S.T.t0+TLIM*1000);S.ask=false;render();$('trainer').scrollIntoView({behavior:'smooth'})}
+/* ---- practice mode ---- */
+function pCard(){
+  const ids=list(),P=$('paper');
+  if(S.pos>=ids.length){pRes(ids);return}
+  const i=ids[S.pos],T=TASKS[i],x=T[S.lang],A=S.ans[i],sk=SK[T.s];
+  let h='<div class="num">'+(S.pos+1)+'</div><div class="meta"><span class="tag">'+sk[S.lang]+'</span><span class="small" style="margin:0">'+L().sm+' '+(S.pos+1)+' / '+ids.length+'</span></div><p class="q">'+x.q+'</p>'+(T.t?table():'');
+  h+=opts(x,k=>A?(k===T.a?' ok':k===A.c?' bad':''):'',!!A);
+  if(!A&&S.hint)h+='<div class="hintbox"><span class="hand">'+L().hint+':</span> '+sk['h'+(S.lang==='kz'?'k':'r')]+'</div>';
+  if(A)h+='<div class="note'+(A.ok?'':' bad')+'"><strong>'+(A.ok?L().right:L().wrong)+'</strong><p>'+x.e+'</p></div>';
+  h+='<div class="row">'+(A?'<button type="button" class="btn" id="nx">'+(S.pos+1<ids.length?L().next:L().fin)+' →</button>':'<button type="button" class="btn ghost" id="hb">'+L().hint+'</button>')+'</div>';
+  P.innerHTML=h;
+}
+function pRes(ids){
+  const done=ids.filter(i=>S.ans[i]),c=done.filter(i=>S.ans[i].ok).length,n=ids.length;
+  const avg=done.length?Math.round(done.reduce((a,i)=>a+S.ans[i].t,0)/done.length):0;
+  let weak='',wr=2;Object.keys(SK).forEach(k=>{const s=stat(k);if(s.d){const r=s.c/s.d;if(r<wr){wr=r;weak=k}}});
+  let h='<div class="num">✓</div><h2>'+L().resH+'</h2><div class="score">'+fmt(L().ofN,{c,n})+'</div><p>'+fmt(L().avg,{t:avg})+'</p>';
+  if(weak&&wr<1)h+='<p><span class="hand">'+fmt(L().weak,{s:SK[weak][S.lang]})+'</span></p>';
+  h+='<div class="row">'+(weak&&wr<1?'<button type="button" class="btn" id="tw" data-s="'+weak+'">'+L().train+'</button>':'')+'<button type="button" class="btn ghost" id="rs">'+L().restart+'</button></div>';
+  $('paper').innerHTML=h;
+}
+function pSide(){
+  const ids=list();
+  $('tH').textContent=L().tPrac;
+  $('prog').innerHTML=ids.map((i,k)=>'<span class="'+(S.ans[i]?(S.ans[i].ok?'y':'n'):(k===S.pos?'c':''))+'"></span>').join('');
+  $('sideH').textContent=L().sH;$('sideN').textContent=L().sNote;
+  $('sideB').innerHTML='<div class="skills"><button type="button" class="sk" data-s="" aria-pressed="'+(!S.f)+'"><span>'+L().all+'</span><em>'+Object.keys(S.ans).length+' / '+TASKS.length+'</em></button>'+Object.keys(SK).map(k=>{const s=stat(k);return '<button type="button" class="sk" data-s="'+k+'" aria-pressed="'+(S.f===k)+'"><span>'+SK[k][S.lang]+'</span><em>'+s.c+' / '+s.n+'</em><div class="bar"><i style="width:'+(s.c/s.n*100)+'%"></i></div></button>'}).join('')+'</div>';
+}
+function pTimer(){
+  clearInterval(tick);const ids=list(),i=ids[S.pos],A=S.pos<ids.length?S.ans[i]:null,run=S.pos<ids.length&&!A;
+  const draw=()=>{const e=A?A.t:run?Math.floor((Date.now()-t0)/1000):0,left=120-e,late=left<0,a=Math.abs(left);
+    $('tt').textContent=(late?'−':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');
+    $('arc').style.strokeDashoffset=late?0:C*(1-left/120);$('ring').classList.toggle('late',late);
+    $('tnote').textContent=A?fmt(L().tDone,{s:A.t}):late?L().tLate:L().tOk};
+  draw();if(run)tick=setInterval(draw,1000);
+}
+/* ---- shared ---- */
+function i18n(){
+  document.documentElement.lang=S.lang==='kz'?'kk':'ru';
+  document.querySelectorAll('[data-i]').forEach(el=>{el.textContent=L()[el.dataset.i]});
+  $('lkz').setAttribute('aria-pressed',S.lang==='kz');$('lru').setAttribute('aria-pressed',S.lang==='ru');
+  $('mt').setAttribute('aria-pressed',S.mode==='test');$('mp').setAttribute('aria-pressed',S.mode==='prac');
+  const o=S.lang==='kz'?0:3;
+  $('probs').innerHTML=PROBS.map((p,k)=>'<div class="pb"><h4><span class="hand">'+(k+1)+'</span>'+p[o]+'</h4><p>'+p[o+1]+'</p><p class="fix">✓ '+p[o+2]+'</p></div>').join('');
+  $('facts').innerHTML=FACTS[S.lang].map(f=>'<div class="fact"><b>'+f[0]+'</b><span>'+f[1]+'</span></div>').join('');
+}
+function render(){i18n();if(S.mode==='test'){tCard();tSide();tTimer()}else{pCard();pSide();pTimer()}save()}
+function go(f){S.mode='prac';S.f=f;S.hint=false;const ids=list();const first=ids.findIndex(i=>!S.ans[i]);S.pos=first<0?ids.length:first;t0=Date.now();render()}
+function pick(k){
+  if(S.mode==='test'){if(S.T.st!==1)return;S.T.ans[S.T.pos]=k;render();return}
+  const ids=list(),i=ids[S.pos];if(S.pos>=ids.length||S.ans[i])return;S.ans[i]={c:k,ok:k===TASKS[i].a,t:Math.floor((Date.now()-t0)/1000)};render()}
+function tGo(p){S.T.pos=Math.max(0,Math.min(9,p));S.ask=false;render()}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.classList.contains('opt'))pick(+b.dataset.k);
+  else if(b.classList.contains('cell'))tGo(+b.dataset.q);
+  else if(b.id==='go'){S.T={st:1,t0:Date.now(),t1:0,pos:0,ans:{}};render()}
+  else if(b.id==='tn')tGo(S.T.pos+1);
+  else if(b.id==='tp')tGo(S.T.pos-1);
+  else if(b.id==='tf'){if(Object.keys(S.T.ans).length<10){S.ask=true;tCard()}else finish()}
+  else if(b.id==='fy')finish();
+  else if(b.id==='fn'){S.ask=false;tCard()}
+  else if(b.id==='ta'){S.T={st:0,t0:0,t1:0,pos:0,ans:{}};render()}
+  else if(b.id==='mt'){S.mode='test';render()}
+  else if(b.id==='mp'){S.mode='prac';t0=Date.now();render()}
+  else if(b.id==='nx'){S.pos++;S.hint=false;t0=Date.now();render()}
+  else if(b.id==='hb'){S.hint=true;pCard()}
+  else if(b.classList.contains('sk'))go(b.dataset.s);
+  else if(b.id==='tw'){const s=b.dataset.s;TASKS.forEach((t,i)=>{if(t.s===s)delete S.ans[i]});go(s)}
+  else if(b.id==='rs'){S.ans={};go('')}
+  else if(b.id==='lkz'||b.id==='lru'){S.lang=b.id==='lkz'?'kz':'ru';render()}
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea'))return;
+  const m={'1':0,'2':1,'3':2,'4':3,a:0,b:1,c:2,d:3}[e.key.toLowerCase()];
+  if(m!==undefined)pick(m);
+  else if(S.mode==='test'&&S.T.st===1&&e.key==='ArrowRight')tGo(S.T.pos+1);
+  else if(S.mode==='test'&&S.T.st===1&&e.key==='ArrowLeft')tGo(S.T.pos-1);
+  else if(e.key==='Enter'&&$('nx'))$('nx').click();
+});
+window.claude?.hot?.snapshot?.(()=>S);
+const start=d=>{if(d&&d.T)S=Object.assign(S,d);t0=Date.now();if(S.T.st===1&&tUsed()>=TLIM)finish();else render()};
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+}
+</script>
+</body>
+</html>
