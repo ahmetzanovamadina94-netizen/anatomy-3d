@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mathX мат сауат курсы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning, confident and clean like the mathX wordmark
+   IDEA a ruler / number line: the 13 weeks laid out as marks, with the logo's + − and outlined X as motifs
+   PICTURE a large number line of 13 weeks in five coloured sections, ПС ticks under every week, finish flag at 13
+   COLOUR logo navy #183a5e on the logo's warm off-white #f5f5f0; sky #8fb8e3 support; signal red #e0484b for ПС; night = off-white ink on deep navy
+   TYPE Montserrat 800 (geometric like the logo) + Nunito text
+   LAYOUT laptop: nav, hero title + facts left / CTA, number line full width under; program grid; week rhythm; CTA; phone: stacked, line turns vertical-friendly */
+:root{color-scheme:light dark;--bg:light-dark(#f5f5f0,#0d1826);--ink:light-dark(#183a5e,#eef1f6);--txt:light-dark(#22303f,#d6dde8);--mute:light-dark(#5d6b7c,#9fb0c6);--card:light-dark(#ffffff,#132238);--line:light-dark(#d9dde3,#24364f);--sky:light-dark(#8fb8e3,#6f9fd6);--red:light-dark(#e0484b,#ff6e70);--on:light-dark(#ffffff,#0d1826)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:76px;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.disp{font-family:Montserrat,system-ui,sans-serif;color:var(--ink)}
+a{color:var(--ink)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.band{padding-block:clamp(36px,5vw,76px);padding-left:max(5vw,16px);padding-right:max(5vw,16px)}
+.wrap{max-width:1200px;margin:0 auto}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:12px max(5vw,16px)}
+.logo img{height:34px;width:auto;display:block}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .logo img,:root:not([data-theme=light]) .flogo{filter:brightness(0) invert(1) opacity(.94)}}
+:root[data-theme=dark] .logo img,:root[data-theme=dark] .flogo{filter:brightness(0) invert(1) opacity(.94)}
+.links{display:flex;gap:22px;flex:1;flex-wrap:wrap}
+.links a{text-decoration:none;font-weight:700;color:var(--txt)}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;background:var(--ink);color:var(--on);font-weight:800;text-decoration:none;border:2px solid var(--ink)}
+.btn.out{background:transparent;color:var(--ink)}
+.btn.sm{min-height:42px;padding:8px 16px}
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:end;padding-bottom:28px}
+.hero img.big{width:min(340px,70%);height:auto;margin-bottom:22px}
+h1{font-size:clamp(32px,4.6vw,52px);line-height:1.06;letter-spacing:-.02em;margin:0 0 14px;font-weight:800;text-wrap:balance}
+.lead{font-size:18px;max-width:54ch;margin:0 0 24px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fact{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.fact b{display:block;font:800 clamp(30px,3.6vw,42px)/1 Montserrat,sans-serif;color:var(--ink)}
+.fact span{display:block;margin-top:6px;font-weight:600}
+.fact.ps{border:2px solid var(--red)}
+.fact.ps b{color:var(--red)}
+.ruler{padding-top:0}
+.rbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px clamp(14px,3vw,28px) 16px}
+.rhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.rhead h3{margin:0;font-size:18px}
+.fig{position:relative;height:230px}
+.fig svg{position:absolute;inset:0;width:100%;height:100%}
+.fig text{font-family:Montserrat,sans-serif;paint-order:stroke;stroke:var(--card);stroke-width:4px}
+.legend{display:flex;gap:10px 18px;flex-wrap:wrap;margin-top:10px;font-size:14px;font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+h2{font-size:clamp(28px,3.4vw,40px);line-height:1.1;letter-spacing:-.02em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.sub{color:var(--mute);font-size:17px;max-width:62ch;margin:0}
+.weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:14px;margin-top:28px}
+.wk{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.wk header{display:flex;align-items:center;gap:12px;padding:12px 16px;color:#fff}
+.wk header b{font:800 26px/1 Montserrat,sans-serif}
+.wk header span{font-weight:700;font-size:14px;opacity:.95}
+.wk ol{list-style:none;margin:0;padding:6px 16px 4px;flex:1}
+.wk li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.wk li:last-child{border-bottom:0}
+.wk .n{font:800 15px/1.5 Montserrat,sans-serif;color:var(--ink);white-space:nowrap}
+.wk .t{font-weight:700;color:var(--txt)}
+.tag{grid-column:2;justify-self:start;font-size:13px;font-weight:800;padding:1px 9px;border-radius:999px;background:color-mix(in srgb,var(--sky) 28%,transparent);color:var(--ink)}
+.tag.b{background:color-mix(in srgb,#f2b33d 35%,transparent)}
+.tag.f{background:var(--red);color:#fff}
+.wk footer{display:flex;align-items:center;gap:8px;padding:10px 16px;background:color-mix(in srgb,var(--red) 9%,var(--card));font-weight:800;color:var(--red);font-size:15px}
+.dots{display:flex;gap:4px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--red)}
+.rhythm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:28px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.step .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font:800 22px Montserrat,sans-serif;margin-bottom:12px}
+.step h3{margin:0 0 4px;font-size:18px}
+.step p{margin:0;color:var(--mute)}
+.navy{background:#183a5e;color:#e6edf6}
+.navy h2,.navy h3{color:#fff}
+.navy .sub{color:#c3d2e4}
+.navy .btn{background:#fff;color:#183a5e;border-color:#fff}
+.navy .btn.out{background:transparent;color:#fff;border-color:#8fb8e3}
+.cta{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:center}
+.cta ul{margin:16px 0 0;padding-left:20px}
+.cta li{margin:6px 0}
+.bigx{justify-self:center;width:min(260px,70%)}
+footer.f{border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+footer.f .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.flogo{height:26px;width:auto}
+@media(max-width:860px){.hero,.cta{grid-template-columns:minmax(0,1fr)}.rhythm{grid-template-columns:repeat(2,minmax(0,1fr))}.bigx{display:none}}
+@media(max-width:600px){.links{display:none}nav .wrap{justify-content:space-between}.rhythm{grid-template-columns:minmax(0,1fr)}.fig{height:250px}}
+@media(prefers-reduced-motion:no-preference){.tok{animation:slide 9s ease-in-out infinite alternate}@keyframes slide{from{transform:translateX(0)}to{transform:translateX(var(--d,0px))}}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#top" aria-label="mathX"><img src="logo.png" alt="mathX"></a>
+  <div class="links"><a href="#program">Бағдарлама</a><a href="#week">Апта қалай өтеді</a><a href="#join">Тіркелу</a></div>
+  <a class="btn sm" href="#program">Бағдарламаны көру</a>
+</div></nav>
+
+<header class="band" id="top"><div class="wrap hero">
+  <div>
+    <img class="big" src="logo.png" alt="mathX">
+    <h1>Математикалық сауаттылық: 3 айда ҰБТ-ға дайындық</h1>
+    <p class="lead">13 апта, 34 тақырып, 26 сабақ. Әр аптада 2 сабақ және 2 пробный сынақ (ПС), сондықтан ҰБТ форматына әр апта сайын дайындаласың.</p>
+    <div class="row"><a class="btn" href="#program">Апта-аптасымен көру</a><a class="btn out" href="https://ahmetzanovamadina94-netizen.github.io/anatomy-3d/mathx/">Пробный тестті тапсыру</a></div>
+  </div>
+  <div class="facts">
+    <div class="fact"><b>3 ай</b><span>13 апта курс</span></div>
+    <div class="fact"><b>26</b><span>сабақ, аптасына 2 рет</span></div>
+    <div class="fact ps"><b>2 ПС</b><span>пробный сынақ әр аптада</span></div>
+    <div class="fact"><b>34</b><span>ҰБТ тақырыбы, сандардан геометрияға дейін</span></div>
+  </div>
+</div></header>
+
+<section class="band ruler"><div class="wrap rbox">
+  <div class="rhead"><h3>Курс жолы: 13 апта</h3><span class="sub" style="font-size:14px">Әр белгі — бір апта, астындағы қызыл нүктелер — сол аптаның ПС-тары</span></div>
+  <div class="fig" id="fig"><svg id="svg" role="img" aria-label="13 апталық курс сызғышы"></svg></div>
+  <div class="legend" id="legend"></div>
+</div></section>
+
+<section class="band" id="program"><div class="wrap">
+  <h2>Курс бағдарламасы апта-аптасымен</h2>
+  <p class="sub">Әр бөлімнің соңында бекіту сабағы, ал соңғы аптада қорытынды пробный тест бар.</p>
+  <div class="weeks" id="weeks"></div>
+</div></section>
+
+<section class="band" id="week" style="background:color-mix(in srgb,var(--sky) 16%,var(--bg))"><div class="wrap">
+  <h2>Бір апта қалай өтеді</h2>
+  <p class="sub">Аптасына 2 сабақ және 2 пробный сынақ: үйренесің, сосын бірден ҰБТ форматында тексересің.</p>
+  <div class="rhythm">
+    <div class="step"><div class="ic" style="background:#183a5e;color:#fff">+</div><h3>1-сабақ</h3><p>Жаңа тақырып: түсіндіру және есептер шығару.</p></div>
+    <div class="step"><div class="ic" style="background:#8fb8e3;color:#183a5e">−</div><h3>2-сабақ</h3><p>Келесі тақырып немесе бөлімді бекіту.</p></div>
+    <div class="step"><div class="ic" style="background:#e0484b;color:#fff">1</div><h3>1-ПС</h3><p>Пробный сынақ ҰБТ форматында, уақытпен.</p></div>
+    <div class="step"><div class="ic" style="background:#e0484b;color:#fff">2</div><h3>2-ПС</h3><p>Екінші пробный сынақ және қателерді талдау.</p></div>
+  </div>
+</div></section>
+
+<section class="band navy" id="join"><div class="wrap cta">
+  <div>
+    <h2>Деңгейіңді қазір тексер</h2>
+    <p class="sub">Курсқа дейін 10 сұрақтық тегін пробный тестті тапсырып көр: 20 минут, нақты ҰБТ форматы, соңында әр есептің шешімі.</p>
+    <ul>
+      <li>3 ай, 13 апта, 26 сабақ</li>
+      <li>Аптасына 2 сабақ және 2 пробный сынақ</li>
+      <li>Қазақ тілінде</li>
+    </ul>
+    <div class="row" style="margin-top:20px"><a class="btn" href="https://ahmetzanovamadina94-netizen.github.io/anatomy-3d/mathx/">Пробный тестті бастау</a><a class="btn out" href="#program">Бағдарламаға оралу</a></div>
+  </div>
+  <svg class="bigx" viewBox="0 0 200 200" aria-hidden="true"><path d="M40 30h34l26 44 26-44h34l-43 70 43 70h-34l-26-44-26 44H40l43-70z" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="miter"/><path d="M60 196L170 4" stroke="#8fb8e3" stroke-width="5"/></svg>
+</div></section>
+
+<footer class="band f"><div class="wrap"><img class="flogo" src="logo.png" alt="mathX"><span>mathX — ҰБТ математикалық сауаттылыққа дайындық курсы</span></div></footer>
+
+<script>
+{
+const SEC=[
+ {n:'Сандар және логика',c:'#183a5e',w:[1,3]},
+ {n:'Пропорция және пайыз',c:'#3f6fa3',w:[4,6]},
+ {n:'Теңдеулер және мәтінді есептер',c:'#8fb8e3',w:[6,8]},
+ {n:'Статистика, қозғалыс, ықтималдық',c:'#f2b33d',w:[8,11]},
+ {n:'Геометрия және қорытынды',c:'#e0484b',w:[11,13]}];
+const N='new',B='bek',F='fin';
+const L=[
+['Сандардың түрлері және Сандарға байланысты есептер',N,0],['Кесте және ребустар',N,0],
+['ЕКОЕ және ЕҮОБ',N,0],['Кітап беттерін номерлеу және Эйлер-Венн диаграммасы',N,0],
+['Сандық қатынастар және Дәреже: санның соңғы цифрын табу',N,0],['Бекіту: сандар, ребустар, ЕКОЕ/ЕҮОБ, Эйлер-Венн, дәреже',B,0],
+['Жалған монеталарға және бактерияларға байланысты есептер',N,1],['Пропорция. Күрделі пропорция',N,1],
+['Пайыз',N,1],['Концентрацияға байланысты есептер',N,1],
+['Бекіту: жалған монеталар, пропорция, пайыз, концентрация',B,1],['Түбір. Салыстырулар және Теңдеулер',N,2],
+['Екі айнымалысы бар теңдеулер және Теңсіздіктер',N,2],['Бірлескен жұмыс және Адам жасына байланысты есептер',N,2],
+['Бекіту: түбір, теңдеулер, теңсіздіктер, бірлескен жұмыс, жас',B,2],['Ең көп және ең аз және Арифметикалық орта',N,3],
+['Мода, медиана, өзгеріс ауқымы',N,3],['Қозғалыс және Өзендегі қозғалыс',N,3],
+['Ықтималдылық және Комбинаторика',N,3],['Уақытқа байланысты есептер',N,3],
+['Бекіту: статистика, қозғалыс, ықтималдылық, комбинаторика, уақыт',B,3],['Кесінді. Бұрышқа байланысты есептер және Үшбұрыштар',N,4],
+['Төртбұрыштар және Шеңбер, дөңгелек',N,4],['Кубик және көлем табу және Аралас геометриялық есептер',N,4],
+['Бекіту: геометрия және мат сауаттылық есептерін талдау',B,4],['Қорытынды: есептер талдау және пробный тест (ҰБТ форматы)',F,4]];
+const TAG={new:['Жаңа тақырып',''],bek:['Бекіту сабағы',' b'],fin:['Қорытынды',' f']};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let h='';
+for(let w=1;w<=13;w++){
+  const a=L[2*w-2],b=L[2*w-1],sec=SEC[a[2]];
+  const col=sec.c==='#8fb8e3'||sec.c==='#f2b33d'?'#183a5e':'#fff';
+  h+='<article class="wk"><header style="background:'+sec.c+';color:'+col+'"><b>'+w+'</b><span>апта · '+esc(sec.n)+'</span></header><ol>'+
+  [a,b].map((x,k)=>'<li><span class="n">'+(2*w-1+k)+'-сабақ</span><span class="t">'+esc(x[0])+'</span><span class="tag'+TAG[x[1]][1]+'">'+TAG[x[1]][0]+'</span></li>').join('')+
+  '</ol><footer><span class="dots"><i></i><i></i></span>+ 2 пробный сынақ (ПС)</footer></article>';
+}
+document.getElementById('weeks').innerHTML=h;
+document.getElementById('legend').innerHTML=SEC.map(s=>'<span><i style="background:'+s.c+'"></i>'+esc(s.n)+'</span>').join('')+'<span><i style="background:#e0484b;border-radius:50%"></i>ПС</span>';
+const s=document.getElementById('svg');
+const draw=()=>{
+  const W=s.clientWidth,H=s.clientHeight;if(!W)return;
+  const narrow=W<520,m=narrow?18:34,x0=m,x1=W-m-(narrow?10:26),y=H*.48,step=(x1-x0)/12,X=w=>x0+(w-1)*step;
+  let g='';
+  const BD=[0.65,3.5,6,8,11,13.35];
+  SEC.forEach((sc,i)=>{const a=X(BD[i]),b=X(BD[i+1]);g+='<rect x="'+a+'" y="'+(y-14)+'" width="'+(b-a)+'" height="28" fill="'+sc.c+'" opacity=".92"/>'});
+  g+='<line x1="'+x0+'" x2="'+X(13)+'" y1="'+y+'" y2="'+y+'" stroke="var(--ink)" stroke-width="2" opacity=".35"/>';
+  for(let w=1;w<=13;w++){const x=X(w);
+    g+='<line x1="'+x+'" x2="'+x+'" y1="'+(y-24)+'" y2="'+(y+24)+'" stroke="var(--ink)" stroke-width="'+(w===1||w===13?3:2)+'"/>';
+    if(w<13&&(!narrow||w%2))g+='<text x="'+x+'" y="'+(y-34)+'" text-anchor="middle" font-size="'+(narrow?14:16)+'" font-weight="800" fill="var(--ink)">'+w+'</text>';
+    g+='<circle cx="'+(x-5)+'" cy="'+(y+38)+'" r="4.5" fill="var(--red)"/><circle cx="'+(x+5)+'" cy="'+(y+38)+'" r="4.5" fill="var(--red)"/>';}
+  const fx=X(13);
+  g+='<path d="M'+fx+' '+(y-24)+'v-52" stroke="var(--ink)" stroke-width="3"/><path d="M'+fx+' '+(y-76)+'h'+(narrow?22:30)+'l-6 10 6 10h-'+(narrow?22:30)+'z" fill="var(--red)"/>';
+  g+='<text x="'+(fx-8)+'" y="'+(y-84)+'" text-anchor="end" font-size="14" font-weight="800" fill="var(--red)">13-апта: ҰБТ-ға дайын</text>';
+  g+='<g class="tok" style="--d:'+(X(13)-X(1))+'px"><circle cx="'+X(1)+'" cy="'+(y+70)+'" r="12" fill="var(--ink)"/><text x="'+X(1)+'" y="'+(y+75)+'" text-anchor="middle" font-size="14" font-weight="800" fill="var(--on)" style="stroke:none">x</text></g>';
+  g+='<text x="'+x0+'" y="'+(H-6)+'" font-size="14" font-weight="700" fill="var(--mute)">26 сабақ · 26 ПС</text>';
+  s.innerHTML=g;
+};
+const ro=new ResizeObserver(draw);ro.observe(s);
+}
+</script>
+</body>
+</html>
